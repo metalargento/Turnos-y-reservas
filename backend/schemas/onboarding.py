@@ -83,19 +83,9 @@ class ServicesStepRequest(BaseSchema):
 # Paso 5: Configuración de agenda
 # ============================================
 
-class EmailProviderEnum(str, BaseModel):
+class EmailProvider(str):
     """Proveedor de email: 'resend' o 'smtp'."""
-    value: str
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v: str) -> str:
-        if v not in ("resend", "smtp"):
-            raise ValueError("email_provider debe ser 'resend' o 'smtp'")
-        return v
+    pass
 
 
 class AgendaStepRequest(BaseSchema):

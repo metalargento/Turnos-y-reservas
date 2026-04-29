@@ -3,6 +3,7 @@ Servicio de onboarding del negocio.
 Orquesta los 5 pasos del wizard de activación.
 """
 from typing import Dict, Any, List, Optional
+from passlib.context import CryptContext
 from repositories.business_repo import business_repo
 from repositories.branch_repo import branch_repo
 from repositories.service_repo import service_repo
@@ -283,7 +284,6 @@ class OnboardingService:
         # Encriptar password SMTP si existe
         smtp_password_encrypted = None
         if smtp_password and email_provider == "smtp":
-            from passlib.context import CryptContext
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
             smtp_password_encrypted = pwd_context.hash(smtp_password)
 
