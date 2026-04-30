@@ -44,7 +44,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 # Middlewares
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware("http")(auth_middleware)
+app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
 
 # CORS
 app.add_middleware(
