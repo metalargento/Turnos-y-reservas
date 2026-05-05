@@ -44,7 +44,7 @@ class BranchRepository:
         result = db.execute_one(query, (business_id, name, address, phone))
         logger.info(
             "Sucursal creada",
-            extra={"branch_id": result["id"], "business_id": business_id, "name": name}
+            extra={"branch_id": result["id"], "business_id": business_id, "branch_name": name}
         )
         return dict(result)
 

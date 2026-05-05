@@ -64,6 +64,10 @@ async def auth_middleware(request: Request, call_next):
     - Rutas públicas: pasan sin verificar
     - Rutas protegidas: requieren token válido en header Authorization
     """
+    # Permitir solicitudes OPTIONS (preflight CORS)
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     # Verificar si es ruta pública
     if is_public_route(request.url.path):
         return await call_next(request)

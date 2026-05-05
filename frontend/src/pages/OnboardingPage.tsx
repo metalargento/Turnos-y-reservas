@@ -33,6 +33,9 @@ export function OnboardingPage() {
     defaultValues: { primary_color: '#000000', secondary_color: '#FFFFFF' },
   });
   const step3Form = useForm<Step3Data>();
+  const step4Form = useForm<Step4Data>({
+    defaultValues: { services: [{ name: '', duration_minutes: 30, price: 0 }] },
+  });
   const step5Form = useForm<Step5Data>({
     defaultValues: { min_advance_hours: 1, email_provider: 'resend', google_calendar_enabled: false },
   });

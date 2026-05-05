@@ -117,7 +117,7 @@ class OnboardingProgressResponse(BaseSchema):
     onboarding_completed: bool
     steps_completed: List[str]
     steps_pending: List[str]
-    next_step: str
+    next_step: Optional[str] = None
 
 
 class OnboardingCompleteResponse(BaseSchema):

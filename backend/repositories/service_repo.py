@@ -49,7 +49,7 @@ class ServiceRepository:
         )
         logger.info(
             "Servicio creado",
-            extra={"service_id": result["id"], "business_id": business_id, "name": name}
+            extra={"service_id": result["id"], "business_id": business_id, "service_name": name}
         )
         return dict(result)
 

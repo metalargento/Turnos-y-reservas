@@ -30,6 +30,7 @@ class Database:
                 dsn=settings.database_url,
                 cursor_factory=RealDictCursor
             )
+            self._conn.autocommit = True
             logger.info("Conexión a base de datos establecida")
         except Exception as e:
             logger.error("Error al conectar a la base de datos", extra={"error": str(e)})
