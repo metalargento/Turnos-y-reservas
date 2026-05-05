@@ -9,6 +9,7 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/bookings', label: 'Reservas', icon: '📅' },
   { path: '/services', label: 'Servicios', icon: '🔧' },
   { path: '/branches', label: 'Sucursales', icon: '📍' },
   { path: '/professionals', label: 'Profesionales', icon: '👥' },

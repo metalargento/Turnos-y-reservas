@@ -159,3 +159,54 @@ export interface ProfessionalUpdateRequest {
 export interface AssignServicesRequest {
   service_ids: string[];
 }
+
+export interface Booking {
+  id: string;
+  business_id: string;
+  branch_id?: string;
+  professional_id?: string;
+  service_id?: string;
+  client_name: string;
+  client_email: string;
+  client_phone?: string;
+  client_notes?: string;
+  starts_at: string;
+  ends_at: string;
+  status: 'confirmed' | 'cancelled' | 'rescheduled' | 'completed';
+  cancelled_by?: string;
+  cancellation_reason?: string;
+  payment_required: boolean;
+  payment_status: 'pending' | 'paid' | 'refunded';
+  payment_amount?: number;
+  payment_id?: string;
+  confirmation_token: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookingCreateRequest {
+  professional_id: string;
+  service_id: string;
+  branch_id?: string;
+  client_name: string;
+  client_email: string;
+  client_phone?: string;
+  client_notes?: string;
+  starts_at: string;
+  ends_at: string;
+  payment_required?: boolean;
+  payment_amount?: number;
+}
+
+export interface BookingUpdateRequest {
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  client_notes?: string;
+  starts_at?: string;
+  ends_at?: string;
+}
+
+export interface BookingCancelRequest {
+  cancellation_reason?: string;
+}

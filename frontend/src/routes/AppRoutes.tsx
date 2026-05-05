@@ -13,6 +13,7 @@ import {
   BranchesPage,
   SettingsPage,
   ProfessionalsPage,
+  BookingsPage,
 } from '../pages';
 
 export function AppRoutes() {
@@ -37,6 +38,7 @@ export function AppRoutes() {
             <Route path="services" element={<ServicesPage />} />
             <Route path="branches" element={<BranchesPage />} />
             <Route path="professionals" element={<ProfessionalsPage />} />
+            <Route path="bookings" element={<BookingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
 
