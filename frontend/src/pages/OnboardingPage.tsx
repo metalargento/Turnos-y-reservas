@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { Button, Input, Card, CardContent, Alert, Stepper } from '../components/ui';
 import { onboardingApi } from '../api/onboarding';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,11 +22,15 @@ interface Step5Data extends AgendaStepRequest {}
 
 export function OnboardingPage() {
   const navigate = useNavigate();
-  const { token } = useAuth();
+  const { login } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    loadExistingBusiness();
+  }, []);
 
   const step1Form = useForm<Step1Data>();
   const step2Form = useForm<Step2Data>({
@@ -49,20 +53,38 @@ export function OnboardingPage() {
     name: 'services',
   });
 
+  const loadExistingBusiness = async () => {
+    try {
+      const result = await onboardingApi.getMyBusiness();
+      if (result.has_business && result.business) {
+        setBusinessId(result.business.id);
+        const progress = await onboardingApi.getProgress(result.business.id);
+        const nextStepIndex = STEPS.findIndex((step, idx) => !progress.steps_completed.includes(`step_${idx + 1}_${step.toLowerCase()}`));
+        if (nextStepIndex >= 0) {
+          setCurrentStep(nextStepIndex);
+        } else if (progress.onboarding_completed) {
+          navigate('/dashboard');
+        }
+      }
+    } catch {
+      // No business yet, start from step 0
+    }
+  };
+
   useEffect(() => {
     if (serviceFields.length === 0) {
       appendService({ name: '', duration_minutes: 30, price: 0 });
     }
-  }, []);
+  }, [serviceFields, appendService]);
 
   const handleStep1 = async (data: Step1Data) => {
     setError('');
     setIsLoading(true);
     try {
       const result = await onboardingApi.step1CreateBusiness(data);
-      setBusinessId(result.business_id);
+      setBusinessId(result.id);
       if (result.access_token) {
-        localStorage.setItem('token', result.access_token);
+        login(result.access_token, { id: '', email: '', full_name: '', role: 'owner' });
       }
       setCurrentStep(1);
     } catch (err: any) {
@@ -309,38 +331,89 @@ export function OnboardingPage() {
               <h2 className="text-xl font-bold text-gray-900">Configuración final</h2>
               <p className="text-gray-500">Últimos ajustes para activar tu negocio</p>
             </div>
-            <form onSubmit={step5Form.handleSubmit(handleStep5)} className="space-y-4">
-              <Input
-                label="Horas mínimas de anticipación"
-                type="number"
-                {...step5Form.register('min_advance_hours', { valueAsNumber: true, required: true })}
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Proveedor de email</label>
-                <select
-                  {...step5Form.register('email_provider')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                >
-                  <option value="resend">Resend (recomendado)</option>
-                  <option value="smtp">SMTP propio</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" {...step5Form.register('google_calendar_enabled')} />
-                <label className="text-sm text-gray-700">Activar Google Calendar</label>
-              </div>
-              <div className="flex gap-4">
-                <Button type="button" variant="outline" onClick={() => setCurrentStep(3)} className="flex-1">
-                  Volver
-                </Button>
-                <Button type="submit" className="flex-1" isLoading={isLoading}>
-                  Completar
-                </Button>
-              </div>
-            </form>
+            <Step5Form
+              form={step5Form}
+              isLoading={isLoading}
+              onBack={() => setCurrentStep(3)}
+              onSubmit={handleStep5}
+            />
           </CardContent>
         </Card>
       )}
     </div>
+  );
+}
+
+interface Step5FormProps {
+  form: any;
+  isLoading: boolean;
+  onBack: () => void;
+  onSubmit: (data: Step5Data) => void;
+}
+
+function Step5Form({ form, isLoading, onBack, onSubmit }: Step5FormProps) {
+  const emailProvider = useWatch({ control: form.control, name: 'email_provider' });
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <Input
+        label="Horas mínimas de anticipación"
+        type="number"
+        {...form.register('min_advance_hours', { valueAsNumber: true, required: true })}
+      />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Proveedor de email</label>
+        <select
+          {...form.register('email_provider')}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+        >
+          <option value="resend">Resend (recomendado)</option>
+          <option value="smtp">SMTP propio</option>
+        </select>
+      </div>
+
+      {emailProvider === 'smtp' && (
+        <div className="bg-blue-50 p-4 rounded-lg space-y-4 border border-blue-200">
+          <Input
+            label="Host SMTP"
+            placeholder="smtp.gmail.com"
+            {...form.register('smtp_host')}
+          />
+          <Input
+            label="Puerto SMTP"
+            type="number"
+            placeholder="587"
+            {...form.register('smtp_port', { valueAsNumber: true })}
+          />
+          <Input
+            label="Usuario SMTP"
+            placeholder="tu@email.com"
+            {...form.register('smtp_user')}
+          />
+          <Input
+            label="Contraseña SMTP"
+            type="password"
+            placeholder="••••••••"
+            {...form.register('smtp_password')}
+          />
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <input type="checkbox" id="google_calendar" {...form.register('google_calendar_enabled')} />
+        <label htmlFor="google_calendar" className="text-sm text-gray-700">
+          Activar Google Calendar (opcional)
+        </label>
+      </div>
+
+      <div className="flex gap-4">
+        <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+          Volver
+        </Button>
+        <Button type="submit" className="flex-1" isLoading={isLoading}>
+          Completar
+        </Button>
+      </div>
+    </form>
   );
 }

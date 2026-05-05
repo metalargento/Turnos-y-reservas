@@ -105,3 +105,57 @@ export interface AgendaStepRequest {
   smtp_password?: string;
   google_calendar_enabled: boolean;
 }
+
+export interface ServiceCreateRequest {
+  name: string;
+  description?: string;
+  duration_minutes: number;
+  price?: number;
+}
+
+export interface ServiceUpdateRequest {
+  name?: string;
+  description?: string;
+  duration_minutes?: number;
+  price?: number;
+}
+
+export interface BranchCreateRequest {
+  name: string;
+  address?: string;
+  phone?: string;
+}
+
+export interface BranchUpdateRequest {
+  name?: string;
+  address?: string;
+  phone?: string;
+}
+
+export interface Professional {
+  id: string;
+  business_id: string;
+  display_name: string;
+  branch_id?: string;
+  avatar_url?: string;
+  bio?: string;
+  is_active: boolean;
+}
+
+export interface ProfessionalCreateRequest {
+  display_name: string;
+  branch_id?: string;
+  avatar_url?: string;
+  bio?: string;
+}
+
+export interface ProfessionalUpdateRequest {
+  display_name?: string;
+  branch_id?: string;
+  avatar_url?: string;
+  bio?: string;
+}
+
+export interface AssignServicesRequest {
+  service_ids: string[];
+}

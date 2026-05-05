@@ -9,6 +9,10 @@ import {
   OnboardingPage,
   DashboardPage,
   NotFoundPage,
+  ServicesPage,
+  BranchesPage,
+  SettingsPage,
+  ProfessionalsPage,
 } from '../pages';
 
 export function AppRoutes() {
@@ -30,6 +34,10 @@ export function AppRoutes() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="onboarding" element={<OnboardingPage />} />
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="services" element={<ServicesPage />} />
+            <Route path="branches" element={<BranchesPage />} />
+            <Route path="professionals" element={<ProfessionalsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

@@ -16,23 +16,17 @@ PUBLIC_ROUTES = [
     "/api/auth/login",
     "/api/auth/refresh",
     "/api/auth/verify-token",
-]
-
-# Rutas públicas de reservas (cliente final sin cuenta)
-PUBLIC_BOOKING_ROUTES = [
-    "/api/bookings/public",
-    "/api/bookings/confirm",
-    "/api/bookings/cancel",
-    "/api/bookings/reschedule",
+    "/public",  # Todos los endpoints bajo /public son públicos
 ]
 
 
 def is_public_route(path: str) -> bool:
     """Verifica si una ruta es pública (no requiere autenticación)."""
+    # Verificar rutas exactas
     if path in PUBLIC_ROUTES:
         return True
-    # Verificar rutas de bookings públicos
-    for public_route in PUBLIC_BOOKING_ROUTES:
+    # Verificar rutas que comienzan con prefijos públicos
+    for public_route in PUBLIC_ROUTES:
         if path.startswith(public_route):
             return True
     return False

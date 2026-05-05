@@ -570,3 +570,394 @@ Lo que sigue en el roadmap:
 - **Archivos nuevos:** 8 (3 repos, 1 service, 1 controller, 1 router, 1 schema, actualizado main.py)
 - **Endpoints nuevos:** 7 (5 pasos + progress + my-business)
 - **Tablas usadas:** businesses, branches, services (ya creadas en migraciones)
+
+---
+
+## Sesión 2: Revisión y estado actual del proyecto
+
+### Estado del módulo de onboarding
+
+✅ **COMPLETAMENTE IMPLEMENTADO**
+
+El módulo de onboarding de 5 pasos está 100% funcional y listo para usar:
+
+| Componente | Archivo | Estado |
+|---|---|---|
+| Schemas | `schemas/onboarding.py` | ✅ 5 pasos + respuestas |
+| Service | `services/onboarding_service.py` | ✅ Lógica completa |
+| Controller | `controllers/onboarding_controller.py` | ✅ Orquestación OK |
+| Router | `routers/onboarding_router.py` | ✅ 7 endpoints |
+| Repositories | `repositories/business_repo.py`, `branch_repo.py`, `service_repo.py` | ✅ CRUD completo |
+| Migraciones | `migrations/002-007` | ✅ Todas las tablas creadas |
+| Validaciones | En schemas y services | ✅ Sanitización + validación |
+
+**Verificación de compilación:** ✅ Sin errores de sintaxis. Todo importa correctamente.
+
+---
+
+### Decisiones de arquitectura documentadas
+
+El onboarding está construido siguiendo la arquitectura por capas:
+
+```
+Router (recibe HTTP) 
+  ↓ 
+Controller (extrae owner_id del JWT)
+  ↓
+Service (valida negocio, genera slug, encripta password SMTP)
+  ↓
+Repositories (CRUD a DB)
+```
+
+**Seguridad:**
+- Todos los endpoints protegidos requieren JWT
+- Verificación de ownership en pasos 2-5 (el usuario solo puede editar su negocio)
+- Password SMTP encriptada con bcrypt antes de guardar
+- Sanitización de nombres (remover caracteres especiales)
+
+**Base de datos:**
+- Slug único y generado automáticamente
+- Índices en: owner_id, slug, plan_status
+- Triggers para actualizar updated_at
+- RLS (Row Level Security) pendiente implementar en Supabase
+
+---
+
+### Próximos pasos ordenados por prioridad
+
+**Opción A: Continuar con el backend**
+
+1. **Módulo de profesionales** (medium effort)
+   - CRUD de profesionales
+   - Asignación a servicios
+   - Asignación a sucursales
+
+2. **Módulo de disponibilidad** (hard effort)
+   - Crear horarios de atención regulares
+   - Crear bloqueos (vacaciones, feriados)
+   - Calcular huecos disponibles
+
+3. **Módulo de reservas** (medium effort)
+   - CRUD de bookings
+   - Cancelación/reprogramación
+   - Token de confirmación (sin cuenta)
+
+4. **Integración con Resend** (easy effort)
+   - Emails de confirmación de reserva
+   - Emails de recordatorio (24h antes)
+   - Emails de cancelación
+
+5. **Integración con Mercado Pago** (medium effort)
+   - Webhook de pago
+   - Activación automática del plan
+   - Manejo de fallidas
+
+**Opción B: Testing y quality**
+
+1. **Tests unitarios** para onboarding
+2. **Tests de integración** (DB real)
+3. **Code review** con simplify skill
+4. **Configurar Ruff** (linting/formatting)
+5. **Agregar rate limiting** con slowapi
+
+**Opción C: Frontend**
+
+1. Panel admin (React + Vite)
+   - Dashboard de reservas
+   - Gestión de horarios
+   - CRUD de profesionales
+
+2. Widget público de reservas (HTML + CSS + JS)
+   - Embebible en cualquier sitio
+   - Selección de servicio/profesional
+   - Confirmación sin cuenta
+
+---
+
+### Notas importantes
+
+- El `.env` de la sesión anterior está abierto en el IDE (no subir a git)
+- Todas las dependencias están en `requirements.txt` (versión exacta)
+- Las migraciones son idempotentes (pueden correr múltiples veces)
+- El logger está configurado en JSON para integración con observabilidad
+
+---
+
+*Última actualización: 2026-05-05*
+
+---
+
+## Sesión 3: Panel admin frontend + Endpoints CRUD backend
+
+### Resumen
+En esta sesión se construyó el panel admin funcional del negocio con navegación lateral, páginas de CRUD para servicios y sucursales, y se agregaron los endpoints del backend correspondientes.
+
+### Fase 1: Bugs del Onboarding (frontend)
+
+**Archivo:** `frontend/src/pages/OnboardingPage.tsx`
+
+✅ Bugs arreglados:
+- `handleStep1`: ahora llama a `login()` del AuthContext para sincronizar el token
+- `result.business_id` → `result.id` (corregido)
+- Agregados inputs SMTP en step 5 (solo se muestran si `email_provider === 'smtp'`)
+- Agregada lógica de "reanudar onboarding": al montar la página, carga el negocio existente y salta al paso correspondiente
+- Arregladas dependencias del useEffect
+
+**Archivo:** `frontend/src/contexts/AuthContext.tsx`
+- Limpiado import no usado de `authApi`
+
+---
+
+### Fase 2: Endpoints CRUD Backend
+
+#### Servicios
+**Nuevos archivos:**
+- `backend/schemas/services.py` — `ServiceCreateRequest`, `ServiceUpdateRequest`
+- `backend/controllers/services_controller.py` — Lógica con verificación de ownership
+- `backend/routers/services_router.py` — Endpoints HTTP
+
+**Endpoints:**
+```
+GET    /api/services/{business_id}       — Listar servicios
+POST   /api/services/{business_id}       — Crear servicio (201)
+PUT    /api/services/{service_id}        — Actualizar servicio
+DELETE /api/services/{service_id}        — Desactivar servicio (soft delete)
+```
+
+#### Sucursales
+**Nuevos archivos:**
+- `backend/schemas/branches.py` — `BranchCreateRequest`, `BranchUpdateRequest`
+- `backend/controllers/branches_controller.py` — Lógica con verificación de ownership
+- `backend/routers/branches_router.py` — Endpoints HTTP
+
+**Endpoints:**
+```
+GET    /api/branches/{business_id}       — Listar sucursales
+POST   /api/branches/{business_id}       — Crear sucursal (201)
+PUT    /api/branches/{branch_id}         — Actualizar sucursal
+DELETE /api/branches/{branch_id}         — Desactivar sucursal (soft delete)
+```
+
+**Actualizado:** `backend/main.py` — Registrados los dos routers
+
+---
+
+### Fase 3: Panel Admin Frontend
+
+#### Tipos TypeScript
+**Actualizado:** `frontend/src/types/index.ts`
+- Agregados: `ServiceCreateRequest`, `ServiceUpdateRequest`, `BranchCreateRequest`, `BranchUpdateRequest`
+
+#### API Clients
+**Nuevos archivos:**
+- `frontend/src/api/services.ts` — Métodos: `list()`, `create()`, `update()`, `deactivate()`
+- `frontend/src/api/branches.ts` — Métodos: `list()`, `create()`, `update()`, `deactivate()`
+
+#### Componentes de Layout
+**Nuevo:** `frontend/src/components/layout/Sidebar.tsx`
+- Navegación lateral con iconos
+- Enlaces a: Dashboard, Servicios, Sucursales, Configuración
+- Activos/inactivos según ruta actual
+
+**Refactorizado:** `frontend/src/components/layout/Layout.tsx`
+- Navbar fijo en top (z-50, h-16)
+- Integrada Sidebar (w-64, fixed, h-screen)
+- Main con margen izquierdo para dejar espacio a la sidebar
+
+**Mejorado:** `frontend/src/components/ui/Button.tsx`
+- Agregada prop `size`: 'sm' | 'md' | 'lg'
+- Estilos dinámicos según tamaño
+
+#### Nuevas Páginas
+
+**`frontend/src/pages/ServicesPage.tsx`**
+- Tabla/lista de servicios con nombre, duración, precio
+- Botón "+ Nuevo servicio" que abre formulario inline
+- Editar / Desactivar por servicio
+- Manejo de errores y loading
+
+**`frontend/src/pages/BranchesPage.tsx`**
+- Lista de sucursales con nombre, dirección, teléfono
+- Botón "+ Nueva sucursal"
+- Editar / Desactivar
+- Confirm dialogs antes de desactivar
+
+**`frontend/src/pages/SettingsPage.tsx`**
+- Sección "Información del negocio": nombre, rubro, slug (disabled)
+- Sección "Marca": color primario y secundario con picker + input hex
+- Sección "Agenda": horas mínimas de anticipación, email provider, Google Calendar
+- Botones de guardar separados por sección
+
+#### Rutas
+**Actualizado:** `frontend/src/routes/AppRoutes.tsx`
+```
+/dashboard     → DashboardPage
+/services      → ServicesPage
+/branches      → BranchesPage
+/settings      → SettingsPage
+```
+
+**Actualizado:** `frontend/src/pages/index.ts`
+- Barrel exports para las nuevas páginas
+
+---
+
+### Arquitectura del Panel Admin
+
+```
+Login → Dashboard (info general)
+         ↓
+      Sidebar (navegación)
+         ├─ Dashboard → cards con stats
+         ├─ Servicios → CRUD de servicios
+         ├─ Sucursales → CRUD de sucursales
+         └─ Configuración → Editar marca, agenda
+```
+
+**Flujo de datos:**
+- Usuario se autentica → obiene token JWT
+- Elige negocio o completa onboarding → accede a panel
+- Panel carga desde `/api/onboarding/my-business`
+- Cada página hace llamadas CRUD a sus endpoints
+
+---
+
+### Próximos pasos
+
+1. **Tests** — Tests unitarios para las nuevas páginas y endpoints
+2. **Profesionales** — CRUD de profesionales (backend + frontend)
+3. **Disponibilidad** — Horarios de atención y bloqueos (backend + frontend)
+4. **Reservas** — Módulo de reservas del cliente (widget público)
+5. **Integraciones** — Resend (emails), Mercado Pago (webhook), Google Calendar
+
+---
+
+**Resumen de cambios:**
+- **Archivos nuevos:** 15 (backend + frontend)
+- **Archivos modificados:** 8
+- **Endpoints nuevos:** 8 (4 servicios + 4 sucursales)
+- **Páginas nuevas:** 3 (Servicios, Sucursales, Configuración)
+- **Componentes nuevos:** 1 (Sidebar)
+
+*Última actualización: 2026-05-05*
+
+---
+
+## Sesión 4: Módulo de Profesionales (completo)
+
+### Resumen
+
+Se implementó el módulo de profesionales con CRUD completo (backend + frontend) incluyendo asignación de servicios a cada profesional.
+
+### Backend — Profesionales
+
+#### Nuevos archivos:
+
+**`backend/repositories/professional_repo.py`**
+- `create()` — crear profesional
+- `find_by_id()` — buscar por ID
+- `find_by_business_id()` — listar profesionales activos del negocio
+- `update()` — actualizar datos
+- `set_active()` — activar/desactivar (soft delete)
+- `count_by_business()` — contar profesionales
+- `assign_services()` — asignar lista de servicios (reemplaza anterior)
+- `get_services()` — obtener servicios asignados
+
+**`backend/schemas/professionals.py`**
+- `ProfessionalCreateRequest` — create request
+- `ProfessionalUpdateRequest` — update request
+- `AssignServicesRequest` — lista de service_ids
+
+**`backend/controllers/professionals_controller.py`**
+- Orquestación con verificación de ownership (mismo patrón que servicios/sucursales)
+- Métodos: `list_professionals()`, `create_professional()`, `update_professional()`, `deactivate_professional()`, `assign_services()`
+
+**`backend/routers/professionals_router.py`**
+- 5 endpoints HTTP:
+  - `GET /api/professionals/{business_id}` — listar
+  - `POST /api/professionals/{business_id}` — crear (201)
+  - `PUT /api/professionals/{professional_id}` — editar
+  - `DELETE /api/professionals/{professional_id}` — desactivar (204)
+  - `PUT /api/professionals/{professional_id}/services` — asignar servicios
+
+**Actualizado:** `backend/main.py` — registrado el router
+
+#### Tabla de profesionales (ya existía)
+
+Campos: `id`, `user_id` (opcional), `business_id`, `branch_id` (opcional), `display_name`, `avatar_url`, `bio`, `is_active`
+
+Relación: `professional_services` (muchos a muchos con servicios)
+
+---
+
+### Frontend — Profesionales
+
+#### Nuevos tipos
+
+**`frontend/src/types/index.ts`** agregó:
+- `Professional` — interfaz del profesional
+- `ProfessionalCreateRequest` — crear
+- `ProfessionalUpdateRequest` — editar
+- `AssignServicesRequest` — asignar servicios
+
+#### Nuevo API client
+
+**`frontend/src/api/professionals.ts`**
+- `list(businessId)` → GET
+- `create(businessId, data)` → POST
+- `update(professionalId, data)` → PUT
+- `deactivate(professionalId)` → DELETE
+- `assignServices(professionalId, data)` → PUT services
+
+#### Nueva página
+
+**`frontend/src/pages/ProfessionalsPage.tsx`**
+- Carga: profesionales, servicios, sucursales (en paralelo al montar)
+- Listado de profesionales con nombre, sucursal, bio
+- Botón "+ Nuevo profesional" abre formulario
+- Formulario: nombre, sucursal (select), bio, avatar_url
+- Panel de checkboxes para asignar servicios
+- Editar/Desactivar por profesional
+- Manejo completo de errores y loading
+
+#### Actualizaciones de navegación
+
+**`frontend/src/components/layout/Sidebar.tsx`**
+- Agregado: Profesionales (👥) entre Sucursales y Configuración
+
+**`frontend/src/routes/AppRoutes.tsx`** — nueva ruta `/professionals`
+
+**`frontend/src/pages/index.ts`** — export de `ProfessionalsPage`
+
+---
+
+### Características
+
+✅ **CRUD completo:** crear, listar, editar, desactivar
+✅ **Asignación de servicios:** cada profesional puede tener múltiples servicios
+✅ **Verification de ownership:** solo el owner del negocio puede gestionar sus profesionales
+✅ **Soft delete:** `is_active = false` en lugar de eliminar
+✅ **UI responsiva:** formulario inline, listado en cards, checkboxes para servicios
+✅ **Datos relacionados:** carga servicios y sucursales para los selects
+
+---
+
+### Próximos pasos (después de profesionales)
+
+1. **Disponibilidad/Horarios** — Agenda semanal + bloqueos de profesionales
+2. **Reservas** — CRUD de bookings con asignación a profesionales
+3. **Integraciones** — Resend (emails), Mercado Pago (webhook), Google Calendar
+4. **Tests** — Tests unitarios para los nuevos módulos
+5. **Frontend público** — Widget de reservas para página pública del negocio
+
+---
+
+**Resumen de cambios de sesión 4:**
+- **Archivos nuevos:** 7 (4 backend + 3 frontend)
+- **Archivos modificados:** 4 (main.py, types, AppRoutes, Sidebar)
+- **Endpoints nuevos:** 5
+- **Página nueva:** 1 (ProfessionalsPage)
+- **Tabla reutilizada:** professionals (ya existía)
+- **Relación muchos a muchos:** professional_services (ya existía)
+
+*Última actualización: 2026-05-05 (Sesión 4)*

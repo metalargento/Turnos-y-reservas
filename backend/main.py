@@ -14,6 +14,12 @@ from middleware.auth import auth_middleware
 # Routers
 from routers.auth_router import router as auth_router
 from routers.onboarding_router import router as onboarding_router
+from routers.services_router import router as services_router
+from routers.branches_router import router as branches_router
+from routers.professionals_router import router as professionals_router
+from routers.availability_router import router as availability_router, blocks_router as schedule_blocks_router
+from routers.booking_router import router as booking_router
+from routers.booking_public_router import router as booking_public_router
 
 
 # Crear aplicación
@@ -95,3 +101,10 @@ async def root():
 # Registrar routers
 app.include_router(auth_router)
 app.include_router(onboarding_router)
+app.include_router(services_router)
+app.include_router(branches_router)
+app.include_router(professionals_router)
+app.include_router(availability_router)
+app.include_router(schedule_blocks_router)
+app.include_router(booking_router)
+app.include_router(booking_public_router)
