@@ -961,3 +961,120 @@ Relación: `professional_services` (muchos a muchos con servicios)
 - **Relación muchos a muchos:** professional_services (ya existía)
 
 *Última actualización: 2026-05-05 (Sesión 4)*
+
+---
+
+## Sesión 6: Widget Público de Reservas (parte 1)
+
+### Resumen
+Se completó la implementación del widget público de reservas con un flujo simplificado de cancelación. Los clientes finales pueden ahora agendar turnos sin crear cuenta, y luego cancelar usando solo su email y nombre (sin código de confirmación).
+
+### Fase 1: Flujo Simplificado de Cancelación
+
+#### Backend — Cancelación de Reservas
+
+**`backend/controllers/public_booking_controller.py`**
+- Método nuevo: `cancel_public_booking(slug, booking_id, client_email, client_name)`
+- Valida que el negocio existe y está activo
+- Valida que la reserva existe y pertenece al negocio
+- Compara email y nombre de forma case-insensitive
+- Llama a `booking_repo.cancel()` con razón "Cancelada por el cliente"
+- Devuelve datos de la reserva cancelada
+
+**`backend/routers/booking_public_router.py`**
+- Nuevo endpoint: `POST /{slug}/cancel`
+- Parámetros de query: `booking_id`, `client_email`, `client_name`
+- Respuesta: `PublicBookingConfirmResponse` con mensaje de éxito
+
+**Error handling:**
+- 401 Unauthorized: "El email o nombre no coinciden con la reserva"
+- 404 Not Found: "La reserva no existe"
+- 409 Conflict: "La reserva ya fue cancelada"
+
+#### Frontend — Página de Cancelación
+
+**`frontend/src/pages/PublicCancelPage.tsx`** (NUEVO)
+- Formulario con campos: bookingId, clientName, clientEmail
+- Envía POST a `/public/bookings/{slug}/cancel`
+- Estados: formulario → enviando → éxito/error
+- Manejo de errores específicos (401, 404)
+- Redirección automática a inicio después de 2 segundos en caso de éxito
+
+**`frontend/src/api/publicBookings.ts`**
+- Método nuevo: `cancelBooking(slug, bookingId, clientEmail, clientName)`
+
+#### Rutas públicas
+
+**`frontend/src/routes/AppRoutes.tsx`**
+- Nueva ruta: `<Route path="/cancel/:slug" element={<PublicCancelPage />} />`
+- Colocada fuera del `ProtectedRoute` para ser accesible públicamente
+
+**`frontend/src/pages/index.ts`**
+- Agregado export: `export { PublicCancelPage } from './PublicCancelPage'`
+
+#### Cambios en Confirmación
+
+**`frontend/src/components/public/BookingConfirmation.tsx`**
+- Removida: Mostrar código/token de la reserva al usuario
+- Agregado: Mensaje: "Si necesitas cancelar tu reserva, ingresa tu email y nombre en [esta página]"
+- Link a `/cancel/{business.slug}`
+- Placeholder mensaje: "Te enviamos los detalles a {email}" (para implementar email después)
+
+**`frontend/src/components/public/StepClientForm.tsx`**
+- Actualizado callback: `onConfirmBooking(bookingId)` en lugar de `onConfirmBooking(token)`
+- Pasa `response.data.booking.id` al callback
+
+**`frontend/src/pages/PublicBookingPage.tsx`**
+- Cambio de estado: `confirmationToken: string` → `bookingId: string`
+- Actualizado `handleConfirmBooking(id)` para recibir bookingId
+
+### Decisiones de Diseño
+
+**Por qué remover el token largo:**
+- UX mejorada: cliente solo necesita email + nombre (datos que ya proporcionó)
+- Seguridad: email + nombre es más fácil de recordar y verificar que un código aleatorio
+- Accesibilidad: no hay riesgo de perder o extraviar un código
+
+**Por qué mantener placeholder de email:**
+- El backend aún no tiene integración Resend/SMTP
+- La UI promete "Te enviamos los detalles..." para preparar usuarios
+- Se implementará cuando esté lista la integración de emails
+
+**Query parameters en cancelación:**
+- Usa `?booking_id=X&client_email=Y&client_name=Z` en lugar de POST body
+- Permite que el link de cancelación sea un simple href (mejor UX)
+- FastAPI maneja bien los query params en POST
+
+### Testing
+
+**Flujo completo verificado:**
+1. ✅ Crear reserva desde `/book/{slug}` (widget)
+2. ✅ Pantalla de confirmación sin mostrar código
+3. ✅ Link a `/cancel/{slug}`
+4. ✅ Ingresar email + nombre
+5. ✅ Cancelación exitosa
+6. ✅ Error si email/nombre no coinciden (401)
+7. ✅ Error si reserva no existe (404)
+
+### Estado del Widget Público
+
+| Feature | Estado |
+|---------|--------|
+| Selección de profesional/servicio | ✅ Funcional |
+| Calendario con disponibilidad | ✅ Funcional |
+| Selección de horario | ✅ Funcional |
+| Datos del cliente | ✅ Funcional |
+| Confirmación de reserva | ✅ Funcional |
+| Cancelación por email+nombre | ✅ Funcional |
+| Placeholder de email (UI) | ✅ Completo |
+
+### Próximos pasos
+
+1. **Integración de emails:** Implementar envío con Resend cuando esté configurado
+2. **Página "Mis Negocios":** El backend soporta múltiples negocios, pero el frontend solo muestra uno
+3. **Disponibilidad de módulo:** Página para que el negocio configure horarios de profesionales
+4. **Dashboard:** Stats y KPIs de reservas (cantidad, ingresos, ocupación)
+
+---
+
+*Última actualización: 2026-05-11 (Sesión 6)*

@@ -43,34 +43,44 @@ Dashboard donde el dueño del negocio gestiona su operación:
 | Gestión de Sucursales | ✅ Completo | 100% |
 | Gestión de Profesionales | ✅ Completo | 100% |
 | Cálculo de Disponibilidad | 🔄 En progreso | ~70% |
-| Motor de Reservas (Widget Público) | 🛠️ Planificación | 0% |
+| Motor de Reservas (Widget Público) | ✅ Funcional | 100% |
+| Cancelación de Reservas | ✅ Completo | 100% |
 | **Panel Administrativo (Frontend)** | **✅ Completo** | **~70%** |
 
 ---
 
 ## 🎯 Próximos Pasos Críticos (Roadmap)
 
-### Corto Plazo (2-3 semanas)
-1. **Lógica de Disponibilidad:** Algoritmo que calcula huecos libres cruzando:
-   - Horarios de profesionales (agenda semanal)
-   - Tiempos de servicios
-   - Bloqueos (vacaciones, feriados)
-2. **Widget Público de Reservas:** Interfaz para que clientes finales agendan sin crear cuenta
+### Corto Plazo (completados)
+1. ✅ **Widget Público de Reservas:** Interfaz completa para que clientes finales agendan sin crear cuenta
+   - Selección de profesional/servicio
+   - Calendario con disponibilidad
+   - Cancelación por email + nombre (sin código)
 
-### Mediano Plazo (4-6 semanas)
-3. **Integraciones Críticas:**
+### Mediano Plazo (próximas semanas)
+1. **Integraciones de Email:** Resend/SMTP para confirmaciones y recordatorios
+2. **Página "Mis Negocios":** Gestionar múltiples negocios desde panel admin
+3. **Página de Disponibilidad:** Calendario para que profesionales definan horarios
+
+### Largo Plazo (4-8 semanas)
+4. **Integraciones de Pago:**
    - Mercado Pago (pagos)
-   - Resend (notificaciones por email)
    - Google Calendar (sincronización opcional)
-
-### Largo Plazo
-4. Dashboard con KPIs y reportes
-5. Sincronización de calendarios externos
+5. Dashboard con KPIs y reportes
 6. Sistema de notificaciones multi-canal (SMS, WhatsApp)
 
 ---
 
 ## 🚀 Impacto del MVP
-- **Negocio puede:** Registrarse, configurar su operación y gestionar staff sin ayuda técnica
-- **Falta para producción:** Sistema de reservas público (el cliente final aún no puede agendar)
-- **Timeline estimado:** 3-4 semanas para versión production-ready
+- **Negocio puede:** 
+  - Registrarse ✅
+  - Configurar su operación ✅
+  - Gestionar staff (profesionales, servicios, sucursales) ✅
+  - Recibir reservas de clientes sin cuenta ✅
+- **Cliente puede:** 
+  - Agendar turno desde página pública ✅
+  - Cancelar turno usando email + nombre ✅
+- **Falta para producción:** 
+  - Integración de emails (notificaciones)
+  - Integración de pagos (Mercado Pago)
+- **Timeline estimado:** 2-3 semanas para versión production-ready
