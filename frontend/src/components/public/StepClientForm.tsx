@@ -7,7 +7,7 @@ interface Props {
   slug: string;
   wizardState: any;
   onStateChange: (state: any) => void;
-  onConfirmBooking: (token: string) => void;
+  onConfirmBooking: (bookingId: string) => void;
   onBack: () => void;
 }
 
@@ -40,7 +40,7 @@ export function StepClientForm({
         ends_at: wizardState.selectedSlot.ends_at,
       });
 
-      onConfirmBooking(response.data.booking.confirmation_token);
+      onConfirmBooking(response.data.booking.id);
     } catch (err: any) {
       if (err.response?.status === 409) {
         setError(

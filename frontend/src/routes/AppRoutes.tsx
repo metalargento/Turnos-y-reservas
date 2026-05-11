@@ -15,6 +15,7 @@ import {
   ProfessionalsPage,
   BookingsPage,
   PublicBookingPage,
+  PublicCancelPage,
 } from '../pages';
 
 export function AppRoutes() {
@@ -25,6 +26,7 @@ export function AppRoutes() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/book/:slug" element={<PublicBookingPage />} />
+          <Route path="/cancel/:slug" element={<PublicCancelPage />} />
 
           <Route
             path="/"

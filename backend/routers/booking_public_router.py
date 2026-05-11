@@ -160,3 +160,31 @@ async def create_public_booking(
         )
     except AppError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.post("/{slug}/cancel", response_model=PublicBookingConfirmResponse)
+async def cancel_public_booking(
+    slug: str,
+    booking_id: str = Query(..., description="UUID de la reserva a cancelar"),
+    client_email: str = Query(..., description="Email del cliente"),
+    client_name: str = Query(..., description="Nombre del cliente"),
+):
+    """
+    Cancelar una reserva pública usando email + nombre.
+
+    El cliente no necesita token, solo proporciona:
+    - El ID de la reserva
+    - Su email
+    - Su nombre
+
+    Se valida que email y nombre coincidan antes de cancelar.
+    """
+    try:
+        return public_booking_controller.cancel_public_booking(
+            slug=slug,
+            booking_id=booking_id,
+            client_email=client_email,
+            client_name=client_name,
+        )
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)

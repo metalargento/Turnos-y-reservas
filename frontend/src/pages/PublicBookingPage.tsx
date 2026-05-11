@@ -35,7 +35,7 @@ export function PublicBookingPage() {
   const [businessInfo, setBusinessInfo] = useState<BusinessInfoResponse | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
-  const [confirmationToken, setConfirmationToken] = useState('');
+  const [bookingId, setBookingId] = useState('');
 
   const [wizardState, setWizardState] = useState<BookingWizardState>({
     professional: null,
@@ -86,11 +86,11 @@ export function PublicBookingPage() {
     });
     setCurrentStep(0);
     setBookingConfirmed(false);
-    setConfirmationToken('');
+    setBookingId('');
   };
 
-  const handleConfirmBooking = (token: string) => {
-    setConfirmationToken(token);
+  const handleConfirmBooking = (id: string) => {
+    setBookingId(id);
     setBookingConfirmed(true);
   };
 
@@ -137,7 +137,7 @@ export function PublicBookingPage() {
   if (bookingConfirmed) {
     return (
       <BookingConfirmation
-        confirmationToken={confirmationToken}
+        bookingId={bookingId}
         onBookAnother={handleResetWizard}
         business={business}
         wizardState={wizardState}

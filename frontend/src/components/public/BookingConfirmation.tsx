@@ -1,27 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button, Card } from '../ui';
 import type { PublicBusinessInfo } from '../../types';
 
 interface Props {
-  confirmationToken: string;
+  bookingId: string;
   onBookAnother: () => void;
   business: PublicBusinessInfo;
   wizardState: any;
 }
 
 export function BookingConfirmation({
-  confirmationToken,
+  bookingId,
   onBookAnother,
   business,
   wizardState,
 }: Props) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopyToken = () => {
-    navigator.clipboard.writeText(confirmationToken);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const navigate = useNavigate();
 
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString('es-AR', {
@@ -110,32 +105,17 @@ export function BookingConfirmation({
           </div>
         </Card>
 
-        {/* Confirmation token */}
-        <Card className="bg-blue-50 border-blue-200">
-          <div className="p-6">
-            <p className="text-sm font-medium text-blue-900 mb-3">
-              Código de confirmación (guárdalo para cancelar o modificar tu reserva)
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 bg-white px-4 py-3 rounded border border-blue-200 font-mono text-sm text-gray-900 break-all">
-                {confirmationToken}
-              </code>
-              <button
-                onClick={handleCopyToken}
-                className="px-4 py-3 bg-white border border-blue-200 rounded hover:bg-blue-50 transition-colors"
-                title="Copiar"
-              >
-                {copied ? '✓' : '📋'}
-              </button>
-            </div>
-          </div>
-        </Card>
-
         {/* Info and CTA */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 text-center space-y-4">
           <p className="text-gray-600">
-            Si necesitas cancelar o modificar tu reserva, usa el código de confirmación
-            anterior.
+            Si necesitas cancelar tu reserva, ingresa tu email y nombre{' '}
+            <button
+              onClick={() => navigate(`/cancel/${business.slug}`)}
+              className="text-black font-semibold hover:underline"
+            >
+              en esta página
+            </button>
+            .
           </p>
           <Button onClick={onBookAnother} className="w-full sm:w-auto">
             Hacer otra reserva

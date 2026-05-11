@@ -437,5 +437,67 @@ class PublicBookingController:
                 return True
         return False
 
+    def cancel_public_booking(
+        self,
+        slug: str,
+        booking_id: str,
+        client_email: str,
+        client_name: str,
+        cancellation_reason: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Cancelar una reserva pública con email + nombre.
+        Valida que el email y nombre coincidan con la reserva.
+        """
+        business = business_repo.find_by_slug(slug)
+        if not business:
+            raise AppError(
+                message="El negocio no existe",
+                code="BUSINESS_NOT_FOUND",
+                status_code=404,
+            )
+
+        booking = booking_repo.find_by_id(booking_id)
+        if not booking:
+            raise AppError(
+                message="La reserva no existe",
+                code="BOOKING_NOT_FOUND",
+                status_code=404,
+            )
+
+        if booking["business_id"] != business["id"]:
+            raise AppError(
+                message="La reserva no pertenece a este negocio",
+                code="INVALID_BOOKING",
+                status_code=404,
+            )
+
+        if booking["status"] == "cancelled":
+            raise AppError(
+                message="Esta reserva ya fue cancelada",
+                code="ALREADY_CANCELLED",
+                status_code=400,
+            )
+
+        # Validar que email y nombre coincidan
+        if (booking["client_email"].lower() != client_email.lower() or
+            booking["client_name"].lower() != client_name.lower()):
+            raise AppError(
+                message="El email o nombre no coinciden con la reserva",
+                code="INVALID_CREDENTIALS",
+                status_code=401,
+            )
+
+        cancelled_booking = booking_repo.cancel(
+            booking_id=booking_id,
+            cancelled_by="client",
+            cancellation_reason=cancellation_reason or "Cancelada por el cliente",
+        )
+
+        return {
+            "message": "Tu reserva ha sido cancelada exitosamente",
+            "booking": cancelled_booking,
+        }
+
 
 public_booking_controller = PublicBookingController()

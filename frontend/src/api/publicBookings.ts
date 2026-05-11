@@ -68,4 +68,26 @@ export const publicBookingsApi = {
       `/public/bookings/${slug}`,
       data,
     ),
+
+  /**
+   * POST /public/bookings/{slug}/cancel
+   * Cancelar una reserva usando email + nombre.
+   */
+  cancelBooking: (
+    slug: string,
+    bookingId: string,
+    clientEmail: string,
+    clientName: string,
+  ) =>
+    publicClient.post<PublicBookingConfirmResponse>(
+      `/public/bookings/${slug}/cancel`,
+      {},
+      {
+        params: {
+          booking_id: bookingId,
+          client_email: clientEmail,
+          client_name: clientName,
+        },
+      },
+    ),
 };
