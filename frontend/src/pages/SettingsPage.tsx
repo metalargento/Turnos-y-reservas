@@ -27,9 +27,9 @@ export function SettingsPage() {
       if (result.has_business && result.business) {
         setBusiness(result.business);
         setFormData({
-          primaryColor: result.business.primary_color,
-          secondaryColor: result.business.secondary_color,
-          minAdvanceHours: result.business.min_advance_hours,
+          primaryColor: result.business.primary_color || '#000000',
+          secondaryColor: result.business.secondary_color || '#FFFFFF',
+          minAdvanceHours: result.business.min_advance_hours || 1,
         });
       }
     } catch (err) {

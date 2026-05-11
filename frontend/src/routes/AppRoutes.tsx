@@ -14,6 +14,7 @@ import {
   SettingsPage,
   ProfessionalsPage,
   BookingsPage,
+  PublicBookingPage,
 } from '../pages';
 
 export function AppRoutes() {
@@ -23,6 +24,7 @@ export function AppRoutes() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/book/:slug" element={<PublicBookingPage />} />
 
           <Route
             path="/"

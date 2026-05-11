@@ -210,3 +210,73 @@ export interface BookingUpdateRequest {
 export interface BookingCancelRequest {
   cancellation_reason?: string;
 }
+
+// ============================================
+// Public API Types (Widget de reservas)
+// ============================================
+
+export interface PublicServiceItem {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price?: number;
+}
+
+export interface PublicProfessionalItem {
+  id: string;
+  display_name: string;
+  avatar_url?: string;
+  bio?: string;
+  services: PublicServiceItem[];
+}
+
+export interface PublicBusinessInfo {
+  id: string;
+  name: string;
+  slug: string;
+  rubro?: string;
+  description?: string;
+  logo_url?: string;
+  primary_color: string;
+  min_advance_hours: number;
+}
+
+export interface BusinessInfoResponse {
+  business: PublicBusinessInfo;
+  professionals: PublicProfessionalItem[];
+}
+
+export interface AvailableDaysResponse {
+  year: number;
+  month: number;
+  available_days: number[];
+}
+
+export interface TimeSlot {
+  starts_at: string;
+  ends_at: string;
+  status: 'available' | 'taken' | 'blocked' | 'past';
+}
+
+export interface SlotsResponse {
+  date: string;
+  duration_minutes: number;
+  slots: TimeSlot[];
+}
+
+export interface PublicBookingCreateRequest {
+  professional_id: string;
+  service_id: string;
+  branch_id?: string;
+  client_name: string;
+  client_email: string;
+  client_phone?: string;
+  client_notes?: string;
+  starts_at: string;
+  ends_at: string;
+}
+
+export interface PublicBookingConfirmResponse {
+  message: string;
+  booking: Booking;
+}

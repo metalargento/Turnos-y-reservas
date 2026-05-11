@@ -8,3 +8,4 @@ export { BranchesPage } from './BranchesPage';
 export { SettingsPage } from './SettingsPage';
 export { ProfessionalsPage } from './ProfessionalsPage';
 export { BookingsPage } from './BookingsPage';
+export { PublicBookingPage } from './PublicBookingPage';

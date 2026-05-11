@@ -2,13 +2,21 @@
 Router público para reservas (bookings).
 Endpoints sin autenticación para clientes finales.
 """
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from schemas.bookings import (
     BookingCancelRequest,
     BookingResponse,
     BookingConfirmResponse,
 )
+from schemas.public_bookings import (
+    BusinessInfoResponse,
+    AvailableDaysResponse,
+    SlotsResponse,
+    PublicBookingCreateRequest,
+    PublicBookingConfirmResponse,
+)
 from controllers.booking_controller import booking_controller
+from controllers.public_booking_controller import public_booking_controller
 from utils.errors import AppError
 from utils.logger import get_logger
 
@@ -53,5 +61,102 @@ async def cancel_booking_by_token(
             "message": "Tu reserva ha sido cancelada exitosamente",
             "booking": booking,
         }
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+# ============================================
+# Endpoints del Widget Público
+# ============================================
+
+
+@router.get("/{slug}", response_model=BusinessInfoResponse)
+async def get_business_info(slug: str):
+    """
+    Obtener información del negocio con sus profesionales y servicios.
+
+    Entrada principal del widget de reservas público.
+    Retorna datos para el Paso 1 (seleccionar profesional + servicio).
+    """
+    try:
+        return public_booking_controller.get_business_info(slug)
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get("/{slug}/availability", response_model=AvailableDaysResponse)
+async def get_available_days(
+    slug: str,
+    professional_id: str = Query(..., description="UUID del profesional"),
+    service_id: str = Query(..., description="UUID del servicio"),
+    year: int = Query(..., description="Año (ej: 2026)"),
+    month: int = Query(..., ge=1, le=12, description="Mes (1-12)"),
+):
+    """
+    Obtener días del mes que tienen slots disponibles para un profesional + servicio.
+
+    Utilizado en el Paso 2 (seleccionar día en calendario).
+    Retorna lista de números de días (1-31) que tienen al menos un slot disponible.
+    """
+    try:
+        return public_booking_controller.get_available_days(
+            slug, professional_id, service_id, year, month
+        )
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.get("/{slug}/slots", response_model=SlotsResponse)
+async def get_slots_for_date(
+    slug: str,
+    professional_id: str = Query(..., description="UUID del profesional"),
+    service_id: str = Query(..., description="UUID del servicio"),
+    date: str = Query(..., description="Fecha en formato YYYY-MM-DD"),
+):
+    """
+    Obtener slots (franjas horarias) disponibles para un día específico.
+
+    Utilizado en el Paso 3 (seleccionar hora).
+    Retorna lista de slots con su status: available, taken, blocked, past.
+    """
+    try:
+        return public_booking_controller.get_slots_for_date(
+            slug, professional_id, service_id, date
+        )
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
+@router.post("/{slug}", status_code=status.HTTP_201_CREATED, response_model=PublicBookingConfirmResponse)
+async def create_public_booking(
+    slug: str,
+    request: PublicBookingCreateRequest,
+):
+    """
+    Crear una reserva pública sin autenticación.
+
+    Validaciones:
+    - Anticipación mínima (min_advance_hours del negocio)
+    - Profesional pertenece al negocio
+    - Sin conflictos con otras reservas (confirmed/rescheduled)
+    - Sin bloqueos (schedule_blocks)
+
+    Retorna confirmación con token único para que el cliente pueda cancelar/ver su reserva.
+
+    Error 409: El slot fue tomado entre la selección y el submit (race condition).
+    """
+    try:
+        return public_booking_controller.create_public_booking(
+            slug=slug,
+            professional_id=request.professional_id,
+            service_id=request.service_id,
+            branch_id=request.branch_id,
+            starts_at=request.starts_at,
+            ends_at=request.ends_at,
+            client_name=request.client_name,
+            client_email=request.client_email,
+            client_phone=request.client_phone,
+            client_notes=request.client_notes,
+        )
     except AppError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)

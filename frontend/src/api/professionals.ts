@@ -9,18 +9,18 @@ import type {
 export const professionalsApi = {
   list: (businessId: string) =>
     apiClient.get<{ professionals: Professional[]; count: number }>(
-      `/professionals/${businessId}`
+      `/api/professionals/${businessId}`
     ),
 
   create: (businessId: string, data: ProfessionalCreateRequest) =>
-    apiClient.post<Professional>(`/professionals/${businessId}`, data),
+    apiClient.post<Professional>(`/api/professionals/${businessId}`, data),
 
   update: (professionalId: string, data: ProfessionalUpdateRequest) =>
-    apiClient.put<Professional>(`/professionals/${professionalId}`, data),
+    apiClient.put<Professional>(`/api/professionals/${professionalId}`, data),
 
   deactivate: (professionalId: string) =>
-    apiClient.delete(`/professionals/${professionalId}`),
+    apiClient.delete(`/api/professionals/${professionalId}`),
 
   assignServices: (professionalId: string, data: AssignServicesRequest) =>
-    apiClient.put(`/professionals/${professionalId}/services`, data),
+    apiClient.put(`/api/professionals/${professionalId}/services`, data),
 };
