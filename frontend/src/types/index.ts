@@ -280,3 +280,33 @@ export interface PublicBookingConfirmResponse {
   message: string;
   booking: Booking;
 }
+
+export interface Availability {
+  id: string;
+  professional_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+}
+
+export interface ScheduleBlock {
+  id: string;
+  professional_id: string;
+  blocked_from: string;
+  blocked_until: string;
+  reason?: string;
+  created_by?: string;
+}
+
+export interface AvailabilityCreateRequest {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
+export interface ScheduleBlockCreateRequest {
+  blocked_from: string;
+  blocked_until: string;
+  reason?: string;
+}

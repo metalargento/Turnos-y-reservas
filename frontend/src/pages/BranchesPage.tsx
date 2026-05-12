@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Input, Alert } from '../components/ui';
 import { branchesApi } from '../api/branches';
-import { useAuth } from '../contexts/AuthContext';
-import { onboardingApi } from '../api/onboarding';
+import { useBusinessContext } from '../contexts/BusinessContext';
 import type { Branch, BranchCreateRequest } from '../types';
 
 export function BranchesPage() {
-  const { token } = useAuth();
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,31 +16,15 @@ export function BranchesPage() {
   });
 
   useEffect(() => {
-    loadBusiness();
-  }, []);
-
-  useEffect(() => {
-    if (businessId) {
-      loadBranches();
-    }
-  }, [businessId]);
-
-  const loadBusiness = async () => {
-    try {
-      const result = await onboardingApi.getMyBusiness();
-      if (result.has_business && result.business) {
-        setBusinessId(result.business.id);
-      }
-    } catch (err) {
-      setError('No se pudo cargar el negocio');
-    }
-  };
+    if (!activeBusiness) return;
+    loadBranches();
+  }, [activeBusiness?.id]);
 
   const loadBranches = async () => {
-    if (!businessId) return;
+    if (!activeBusiness) return;
     setIsLoading(true);
     try {
-      const result = await branchesApi.list(businessId);
+      const result = await branchesApi.list(activeBusiness.id);
       setBranches(result.data.branches);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar sucursales');
@@ -53,13 +35,13 @@ export function BranchesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessId) return;
+    if (!activeBusiness) return;
 
     try {
       if (editingId) {
         await branchesApi.update(editingId, formData);
       } else {
-        await branchesApi.create(businessId, formData);
+        await branchesApi.create(activeBusiness.id, formData);
       }
       setFormData({ name: '' });
       setEditingId(null);
@@ -80,7 +62,7 @@ export function BranchesPage() {
     }
   };
 
-  if (isLoading) {
+  if (businessLoading || isLoading) {
     return <div className="text-center py-8">Cargando...</div>;
   }
 

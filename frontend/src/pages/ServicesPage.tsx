@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, Button, Input, Alert } from '../components/ui';
 import { servicesApi } from '../api/services';
-import { useAuth } from '../contexts/AuthContext';
-import { onboardingApi } from '../api/onboarding';
+import { useBusinessContext } from '../contexts/BusinessContext';
 import type { Service, ServiceCreateRequest } from '../types';
 
 export function ServicesPage() {
-  const { token } = useAuth();
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,31 +18,15 @@ export function ServicesPage() {
   });
 
   useEffect(() => {
-    loadBusiness();
-  }, []);
-
-  useEffect(() => {
-    if (businessId) {
-      loadServices();
-    }
-  }, [businessId]);
-
-  const loadBusiness = async () => {
-    try {
-      const result = await onboardingApi.getMyBusiness();
-      if (result.has_business && result.business) {
-        setBusinessId(result.business.id);
-      }
-    } catch (err) {
-      setError('No se pudo cargar el negocio');
-    }
-  };
+    if (!activeBusiness) return;
+    loadServices();
+  }, [activeBusiness?.id]);
 
   const loadServices = async () => {
-    if (!businessId) return;
+    if (!activeBusiness) return;
     setIsLoading(true);
     try {
-      const result = await servicesApi.list(businessId);
+      const result = await servicesApi.list(activeBusiness.id);
       setServices(result.data.services);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar servicios');
@@ -55,13 +37,13 @@ export function ServicesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessId) return;
+    if (!activeBusiness) return;
 
     try {
       if (editingId) {
         await servicesApi.update(editingId, formData);
       } else {
-        await servicesApi.create(businessId, formData);
+        await servicesApi.create(activeBusiness.id, formData);
       }
       setFormData({ name: '', duration_minutes: 30, price: 0 });
       setEditingId(null);
@@ -82,7 +64,7 @@ export function ServicesPage() {
     }
   };
 
-  if (isLoading) {
+  if (businessLoading || isLoading) {
     return <div className="text-center py-8">Cargando...</div>;
   }
 

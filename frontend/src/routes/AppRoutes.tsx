@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
+import { BusinessProvider } from '../contexts/BusinessContext';
 import { ProtectedRoute } from './ProtectedRoute';
 import { Layout } from '../components/layout';
 import {
@@ -14,6 +15,7 @@ import {
   SettingsPage,
   ProfessionalsPage,
   BookingsPage,
+  AvailabilityPage,
   PublicBookingPage,
   PublicCancelPage,
 } from '../pages';
@@ -32,7 +34,9 @@ export function AppRoutes() {
             path="/"
             element={
               <ProtectedRoute>
-                <Layout />
+                <BusinessProvider>
+                  <Layout />
+                </BusinessProvider>
               </ProtectedRoute>
             }
           >
@@ -44,6 +48,7 @@ export function AppRoutes() {
             <Route path="professionals" element={<ProfessionalsPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="availability" element={<AvailabilityPage />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

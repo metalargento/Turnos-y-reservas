@@ -12,6 +12,11 @@ import type {
 } from '../types';
 
 export const onboardingApi = {
+  getMyBusinesses: async (): Promise<{ businesses: Business[] }> => {
+    const response = await apiClient.get('/api/onboarding/my-businesses');
+    return response.data;
+  },
+
   getMyBusiness: async (): Promise<{ business: Business | null; has_business: boolean }> => {
     const response = await apiClient.get('/api/onboarding/my-business');
     return response.data;

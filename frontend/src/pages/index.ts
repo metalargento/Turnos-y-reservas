@@ -8,5 +8,6 @@ export { BranchesPage } from './BranchesPage';
 export { SettingsPage } from './SettingsPage';
 export { ProfessionalsPage } from './ProfessionalsPage';
 export { BookingsPage } from './BookingsPage';
+export { AvailabilityPage } from './AvailabilityPage';
 export { PublicBookingPage } from './PublicBookingPage';
 export { PublicCancelPage } from './PublicCancelPage';

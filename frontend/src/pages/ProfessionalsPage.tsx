@@ -3,8 +3,7 @@ import { Card, CardContent, Button, Input, Alert } from '../components/ui';
 import { professionalsApi } from '../api/professionals';
 import { servicesApi } from '../api/services';
 import { branchesApi } from '../api/branches';
-import { useAuth } from '../contexts/AuthContext';
-import { onboardingApi } from '../api/onboarding';
+import { useBusinessContext } from '../contexts/BusinessContext';
 import type {
   Professional,
   Service,
@@ -13,8 +12,7 @@ import type {
 } from '../types';
 
 export function ProfessionalsPage() {
-  const { token } = useAuth();
-  const [businessId, setBusinessId] = useState<string | null>(null);
+  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -30,34 +28,18 @@ export function ProfessionalsPage() {
   });
 
   useEffect(() => {
-    loadBusiness();
-  }, []);
-
-  useEffect(() => {
-    if (businessId) {
-      loadAllData();
-    }
-  }, [businessId]);
-
-  const loadBusiness = async () => {
-    try {
-      const result = await onboardingApi.getMyBusiness();
-      if (result.has_business && result.business) {
-        setBusinessId(result.business.id);
-      }
-    } catch (err) {
-      setError('No se pudo cargar el negocio');
-    }
-  };
+    if (!activeBusiness) return;
+    loadAllData();
+  }, [activeBusiness?.id]);
 
   const loadAllData = async () => {
-    if (!businessId) return;
+    if (!activeBusiness) return;
     setIsLoading(true);
     try {
       const [profsResult, servResult, branchResult] = await Promise.all([
-        professionalsApi.list(businessId),
-        servicesApi.list(businessId),
-        branchesApi.list(businessId),
+        professionalsApi.list(activeBusiness.id),
+        servicesApi.list(activeBusiness.id),
+        branchesApi.list(activeBusiness.id),
       ]);
       setProfessionals(profsResult.data.professionals);
       setServices(servResult.data.services);
@@ -83,7 +65,7 @@ export function ProfessionalsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessId || !formData.display_name) return;
+    if (!activeBusiness || !formData.display_name) return;
 
     try {
       if (editingId) {
@@ -95,7 +77,7 @@ export function ProfessionalsPage() {
           });
         }
       } else {
-        const result = await professionalsApi.create(businessId, formData);
+        const result = await professionalsApi.create(activeBusiness.id, formData);
         // Asignar servicios al nuevo profesional
         if (selectedServices.size > 0) {
           await professionalsApi.assignServices(result.data.id, {
@@ -134,7 +116,7 @@ export function ProfessionalsPage() {
     setSelectedServices(newSet);
   };
 
-  if (isLoading) {
+  if (businessLoading || isLoading) {
     return <div className="text-center py-8">Cargando...</div>;
   }
 
