@@ -314,3 +314,20 @@ export interface ScheduleBlockCreateRequest {
   blocked_until: string;
   reason?: string;
 }
+
+export interface UpcomingBooking {
+  id: string;
+  client_name: string;
+  professional_name?: string;
+  service_name?: string;
+  starts_at: string;
+}
+
+export interface DashboardStats {
+  bookings_today: number;
+  bookings_this_week: number;
+  bookings_this_month: number;
+  cancelled_this_month: number;
+  unique_clients_this_month: number;
+  upcoming_bookings: UpcomingBooking[];
+}

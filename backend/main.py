@@ -21,6 +21,7 @@ from routers.professionals_router import router as professionals_router
 from routers.availability_router import router as availability_router, blocks_router as schedule_blocks_router
 from routers.booking_router import router as booking_router
 from routers.booking_public_router import router as booking_public_router
+from routers.dashboard_router import router as dashboard_router
 
 
 # Crear aplicación
@@ -110,3 +111,4 @@ app.include_router(availability_router)
 app.include_router(schedule_blocks_router)
 app.include_router(booking_router)
 app.include_router(booking_public_router)
+app.include_router(dashboard_router)
