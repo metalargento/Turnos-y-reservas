@@ -23,10 +23,10 @@ export function AvailabilityPage() {
     blocked_until: '',
     reason: '',
   });
-  const [blockFromDate, setBlockFromDate] = useState('');
+  const [blockDate, setBlockDate] = useState('');
   const [blockFromTime, setBlockFromTime] = useState('09:00');
-  const [blockUntilDate, setBlockUntilDate] = useState('');
   const [blockUntilTime, setBlockUntilTime] = useState('18:00');
+  const [blockReason, setBlockReason] = useState('');
 
   // Modal para crear/editar horarios
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -114,20 +114,20 @@ export function AvailabilityPage() {
   };
 
   const handleAddBlock = async () => {
-    if (!selectedProf || !blockFromDate || !blockUntilDate) return;
+    if (!selectedProf || !blockDate) return;
     try {
-      const blockedFrom = `${blockFromDate}T${blockFromTime}:00Z`;
-      const blockedUntil = `${blockUntilDate}T${blockUntilTime}:00Z`;
+      const blockedFrom = `${blockDate}T${blockFromTime}:00Z`;
+      const blockedUntil = `${blockDate}T${blockUntilTime}:00Z`;
       await availabilityApi.createScheduleBlock(selectedProf.id, {
         blocked_from: blockedFrom,
         blocked_until: blockedUntil,
-        reason: blockFormData.reason || '',
+        reason: blockReason || '',
       });
       setBlockFormData({ blocked_from: '', blocked_until: '', reason: '' });
-      setBlockFromDate('');
+      setBlockDate('');
       setBlockFromTime('09:00');
-      setBlockUntilDate('');
       setBlockUntilTime('18:00');
+      setBlockReason('');
       setShowBlockForm(false);
       await loadProfData();
       setError('');
@@ -259,10 +259,10 @@ export function AvailabilityPage() {
                   onClick={() => {
                     setShowBlockForm(!showBlockForm);
                     if (!showBlockForm) {
-                      setBlockFromDate('');
+                      setBlockDate('');
                       setBlockFromTime('09:00');
-                      setBlockUntilDate('');
                       setBlockUntilTime('18:00');
+                      setBlockReason('');
                     }
                   }}
                 >
@@ -274,47 +274,38 @@ export function AvailabilityPage() {
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Desde (Fecha)
+                      Fecha
                     </label>
                     <input
                       type="date"
-                      value={blockFromDate}
-                      onChange={(e) => setBlockFromDate(e.target.value)}
+                      value={blockDate}
+                      onChange={(e) => setBlockDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Desde (Hora)
-                    </label>
-                    <input
-                      type="time"
-                      value={blockFromTime}
-                      onChange={(e) => setBlockFromTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Hasta (Fecha)
-                    </label>
-                    <input
-                      type="date"
-                      value={blockUntilDate}
-                      onChange={(e) => setBlockUntilDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Hasta (Hora)
-                    </label>
-                    <input
-                      type="time"
-                      value={blockUntilTime}
-                      onChange={(e) => setBlockUntilTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Desde (Hora)
+                      </label>
+                      <input
+                        type="time"
+                        value={blockFromTime}
+                        onChange={(e) => setBlockFromTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Hasta (Hora)
+                      </label>
+                      <input
+                        type="time"
+                        value={blockUntilTime}
+                        onChange={(e) => setBlockUntilTime(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -323,8 +314,8 @@ export function AvailabilityPage() {
                     <input
                       type="text"
                       placeholder="Ej: Vacaciones, Capacitación..."
-                      value={blockFormData.reason || ''}
-                      onChange={(e) => setBlockFormData({ ...blockFormData, reason: e.target.value })}
+                      value={blockReason}
+                      onChange={(e) => setBlockReason(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                     />
                   </div>
