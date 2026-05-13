@@ -102,7 +102,10 @@ class BusinessRepository:
             Lista de diccionarios con datos de los negocios
         """
         query = """
-            SELECT id, owner_id, name, slug, rubro, plan_status, onboarding_completed, created_at
+            SELECT id, owner_id, name, slug, rubro, description, logo_url,
+                   primary_color, secondary_color, plan_status, plan_expires_at,
+                   onboarding_completed, email_provider, smtp_host, smtp_port,
+                   smtp_user, min_advance_hours, google_calendar_enabled, created_at
             FROM businesses
             WHERE owner_id = %s
             ORDER BY created_at DESC
