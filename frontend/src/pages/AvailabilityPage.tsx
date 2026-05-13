@@ -23,6 +23,10 @@ export function AvailabilityPage() {
     blocked_until: '',
     reason: '',
   });
+  const [blockFromDate, setBlockFromDate] = useState('');
+  const [blockFromTime, setBlockFromTime] = useState('09:00');
+  const [blockUntilDate, setBlockUntilDate] = useState('');
+  const [blockUntilTime, setBlockUntilTime] = useState('18:00');
 
   // Modal para crear/editar horarios
   const [showTimeModal, setShowTimeModal] = useState(false);
@@ -110,10 +114,20 @@ export function AvailabilityPage() {
   };
 
   const handleAddBlock = async () => {
-    if (!selectedProf) return;
+    if (!selectedProf || !blockFromDate || !blockUntilDate) return;
     try {
-      await availabilityApi.createScheduleBlock(selectedProf.id, blockFormData);
+      const blockedFrom = `${blockFromDate}T${blockFromTime}:00Z`;
+      const blockedUntil = `${blockUntilDate}T${blockUntilTime}:00Z`;
+      await availabilityApi.createScheduleBlock(selectedProf.id, {
+        blocked_from: blockedFrom,
+        blocked_until: blockedUntil,
+        reason: blockFormData.reason || '',
+      });
       setBlockFormData({ blocked_from: '', blocked_until: '', reason: '' });
+      setBlockFromDate('');
+      setBlockFromTime('09:00');
+      setBlockUntilDate('');
+      setBlockUntilTime('18:00');
       setShowBlockForm(false);
       await loadProfData();
       setError('');
@@ -134,7 +148,7 @@ export function AvailabilityPage() {
   };
 
   const getAvailabilityForDay = (dayOfWeek: number) => {
-    return availability.find(a => a.day_of_week === dayOfWeek && a.is_active);
+    return availability.filter(a => a.day_of_week === dayOfWeek && a.is_active);
   };
 
   const formatDate = (isoString: string) => {
@@ -190,22 +204,33 @@ export function AvailabilityPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Horarios semanales</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {DAYS_OF_WEEK.map((dayName, idx) => {
-                  const avail = getAvailabilityForDay(idx);
+                  const availList = getAvailabilityForDay(idx);
                   return (
                     <div key={idx} className="p-4 border border-gray-200 rounded-lg">
                       <h3 className="font-medium text-gray-900 mb-3">{dayName}</h3>
-                      {avail ? (
+                      {availList.length > 0 ? (
                         <div className="space-y-3">
-                          <div className="text-sm text-gray-600">
-                            {avail.start_time} — {avail.end_time}
-                          </div>
+                          {availList.map(avail => (
+                            <div key={avail.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                              <span className="text-sm text-gray-600">
+                                {avail.start_time} — {avail.end_time}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteAvailability(avail.id)}
+                                className="text-xs"
+                              >
+                                Eliminar
+                              </Button>
+                            </div>
+                          ))}
                           <Button
-                            variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteAvailability(avail.id)}
-                            className="w-full"
+                            onClick={() => handleAddTimeSlot(idx)}
+                            className="w-full mt-2"
                           >
-                            Eliminar
+                            + Agregar otra franja
                           </Button>
                         </div>
                       ) : (
@@ -229,7 +254,18 @@ export function AvailabilityPage() {
             <CardContent className="pt-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Bloqueos</h2>
-                <Button size="sm" onClick={() => setShowBlockForm(!showBlockForm)}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setShowBlockForm(!showBlockForm);
+                    if (!showBlockForm) {
+                      setBlockFromDate('');
+                      setBlockFromTime('09:00');
+                      setBlockUntilDate('');
+                      setBlockUntilTime('18:00');
+                    }
+                  }}
+                >
                   + Agregar bloqueo
                 </Button>
               </div>
@@ -238,23 +274,45 @@ export function AvailabilityPage() {
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Desde
+                      Desde (Fecha)
                     </label>
                     <input
-                      type="datetime-local"
-                      value={blockFormData.blocked_from}
-                      onChange={(e) => setBlockFormData({ ...blockFormData, blocked_from: e.target.value })}
+                      type="date"
+                      value={blockFromDate}
+                      onChange={(e) => setBlockFromDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Hasta
+                      Desde (Hora)
                     </label>
                     <input
-                      type="datetime-local"
-                      value={blockFormData.blocked_until}
-                      onChange={(e) => setBlockFormData({ ...blockFormData, blocked_until: e.target.value })}
+                      type="time"
+                      value={blockFromTime}
+                      onChange={(e) => setBlockFromTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hasta (Fecha)
+                    </label>
+                    <input
+                      type="date"
+                      value={blockUntilDate}
+                      onChange={(e) => setBlockUntilDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hasta (Hora)
+                    </label>
+                    <input
+                      type="time"
+                      value={blockUntilTime}
+                      onChange={(e) => setBlockUntilTime(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
                     />
                   </div>
