@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import type { Availability, ScheduleBlock, AvailabilityCreateRequest, ScheduleBlockCreateRequest } from '../types';
 
 export const availabilityApi = {
-  getAvailability: async (professionalId: string): Promise<{ data: { availability: Availability[] } }> => {
+  getAvailability: async (professionalId: string): Promise<{ data: { availabilities: Availability[] } }> => {
     const response = await apiClient.get(`/api/availability/${professionalId}`);
     return { data: response.data };
   },
@@ -21,7 +21,7 @@ export const availabilityApi = {
     await apiClient.delete(`/api/availability/${availabilityId}`);
   },
 
-  getScheduleBlocks: async (professionalId: string): Promise<{ data: { schedule_blocks: ScheduleBlock[] } }> => {
+  getScheduleBlocks: async (professionalId: string): Promise<{ data: { blocks: ScheduleBlock[] } }> => {
     const response = await apiClient.get(`/api/schedule-blocks/${professionalId}`);
     return { data: response.data };
   },

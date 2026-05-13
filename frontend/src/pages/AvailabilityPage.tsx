@@ -64,8 +64,8 @@ export function AvailabilityPage() {
         availabilityApi.getAvailability(selectedProf.id),
         availabilityApi.getScheduleBlocks(selectedProf.id),
       ]);
-      setAvailability(availResult.data.availability || []);
-      setBlocks(blocksResult.data.schedule_blocks || []);
+      setAvailability(availResult.data.availabilities || []);
+      setBlocks(blocksResult.data.blocks || []);
       setError('');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cargar disponibilidad');
