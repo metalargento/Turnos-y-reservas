@@ -1,84 +1,150 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, Button, Input, Alert } from '../components/ui';
-import { useAuth } from '../contexts/AuthContext';
+import { useBusinessContext } from '../contexts/BusinessContext';
 import { onboardingApi } from '../api/onboarding';
+import { businessApi } from '../api/business';
 import type { Business } from '../types';
 
 export function SettingsPage() {
-  const { token } = useAuth();
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [formData, setFormData] = useState({
-    primaryColor: '#000000',
-    secondaryColor: '#FFFFFF',
-    minAdvanceHours: 1,
+
+  // Sección 1: Información básica
+  const [basicForm, setBasicForm] = useState({ name: '', rubro: '', description: '' });
+  const [editingBasic, setEditingBasic] = useState(false);
+
+  // Sección 2: Marca
+  const [brandForm, setBrandForm] = useState({
+    logo_url: '',
+    primary_color: '#000000',
+    secondary_color: '#FFFFFF',
   });
 
-  useEffect(() => {
-    loadBusiness();
-  }, []);
+  // Sección 3: Agenda
+  const [agendaForm, setAgendaForm] = useState({
+    min_advance_hours: 1,
+    email_provider: 'resend' as const,
+    smtp_host: '',
+    smtp_port: '',
+    smtp_user: '',
+    smtp_password: '',
+    google_calendar_enabled: false,
+  });
 
-  const loadBusiness = async () => {
+  // Sincronizar datos cuando activeBusiness cambia
+  React.useEffect(() => {
+    if (activeBusiness) {
+      setBasicForm({
+        name: activeBusiness.name || '',
+        rubro: activeBusiness.rubro || '',
+        description: activeBusiness.description || '',
+      });
+      setBrandForm({
+        logo_url: activeBusiness.logo_url || '',
+        primary_color: activeBusiness.primary_color || '#000000',
+        secondary_color: activeBusiness.secondary_color || '#FFFFFF',
+      });
+      setAgendaForm({
+        min_advance_hours: activeBusiness.min_advance_hours || 1,
+        email_provider: activeBusiness.email_provider || 'resend',
+        smtp_host: activeBusiness.smtp_host || '',
+        smtp_port: activeBusiness.smtp_port?.toString() || '',
+        smtp_user: activeBusiness.smtp_user || '',
+        smtp_password: '',
+        google_calendar_enabled: activeBusiness.google_calendar_enabled || false,
+      });
+    }
+  }, [activeBusiness]);
+
+  const handleSaveBasic = async () => {
+    if (!activeBusiness) return;
+    setIsLoading(true);
     try {
-      const result = await onboardingApi.getMyBusiness();
-      if (result.has_business && result.business) {
-        setBusiness(result.business);
-        setFormData({
-          primaryColor: result.business.primary_color || '#000000',
-          secondaryColor: result.business.secondary_color || '#FFFFFF',
-          minAdvanceHours: result.business.min_advance_hours || 1,
-        });
-      }
-    } catch (err) {
-      setError('No se pudo cargar la configuración');
+      await businessApi.update(activeBusiness.id, {
+        name: basicForm.name,
+        rubro: basicForm.rubro,
+        description: basicForm.description,
+      });
+      setSuccess('Información actualizada correctamente');
+      setEditingBasic(false);
+      setError('');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error al guardar información');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSaveColors = async () => {
-    if (!business) return;
-    setIsSaving(true);
+  const handleSaveBrand = async () => {
+    if (!activeBusiness) return;
+    setIsLoading(true);
     try {
-      await onboardingApi.step2UpdateBrand(business.id, {
-        primary_color: formData.primaryColor,
-        secondary_color: formData.secondaryColor,
+      await onboardingApi.step2UpdateBrand(activeBusiness.id, {
+        logo_url: brandForm.logo_url || undefined,
+        primary_color: brandForm.primary_color,
+        secondary_color: brandForm.secondary_color,
       });
-      setSuccess('Colores actualizados correctamente');
-      loadBusiness();
+      setSuccess('Marca actualizada correctamente');
+      setError('');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al guardar colores');
+      setError(err.response?.data?.detail || 'Error al guardar marca');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSaveAdvance = async () => {
-    if (!business) return;
-    setIsSaving(true);
+  const handleSaveAgenda = async () => {
+    if (!activeBusiness) return;
+    setIsLoading(true);
     try {
-      await onboardingApi.step5UpdateAgenda(business.id, {
-        min_advance_hours: formData.minAdvanceHours,
-        email_provider: business.email_provider,
-        google_calendar_enabled: business.google_calendar_enabled,
-      });
+      const agendaData: any = {
+        min_advance_hours: agendaForm.min_advance_hours,
+        email_provider: agendaForm.email_provider,
+        google_calendar_enabled: agendaForm.google_calendar_enabled,
+      };
+
+      if (agendaForm.email_provider === 'smtp') {
+        agendaData.smtp_host = agendaForm.smtp_host;
+        agendaData.smtp_port = agendaForm.smtp_port ? parseInt(agendaForm.smtp_port) : null;
+        agendaData.smtp_user = agendaForm.smtp_user;
+        agendaData.smtp_password = agendaForm.smtp_password;
+      }
+
+      await onboardingApi.step5UpdateAgenda(activeBusiness.id, agendaData);
       setSuccess('Configuración de agenda actualizada');
-      loadBusiness();
+      setError('');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar configuración');
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
-  if (isLoading) {
+  const getPlanStatusBadge = () => {
+    if (!activeBusiness) return null;
+    const statusMap = {
+      active: { bg: 'bg-green-100', text: 'text-green-800', label: 'Activo' },
+      expired: { bg: 'bg-red-100', text: 'text-red-800', label: 'Expirado' },
+      cancelled: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Cancelado' },
+    };
+    const status = statusMap[activeBusiness.plan_status] || statusMap.expired;
+    return (
+      <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${status.bg} ${status.text}`}>
+        {status.label}
+      </div>
+    );
+  };
+
+  if (businessLoading) {
     return <div className="text-center py-8">Cargando...</div>;
   }
 
-  if (!business) {
+  if (!activeBusiness) {
     return (
       <Alert variant="error">
         No hay negocio configurado. Completa el onboarding primero.
@@ -87,179 +153,232 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
 
-      {error && (
-        <Alert variant="error" className="mb-4">
-          {error}
-        </Alert>
-      )}
-      {success && (
-        <Alert variant="success" className="mb-4">
-          {success}
-        </Alert>
-      )}
+      {error && <Alert variant="error">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
 
+      {/* Sección 1: Información básica */}
       <Card>
         <CardContent className="space-y-4">
           <h3 className="font-semibold text-lg">Información del negocio</h3>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre
-            </label>
-            <input
-              type="text"
-              disabled
-              value={business.name}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rubro
-            </label>
-            <input
-              type="text"
-              disabled
-              value={business.rubro}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Slug (URL pública)
-            </label>
-            <input
-              type="text"
-              disabled
-              value={business.slug}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
-          </div>
-          <p className="text-xs text-gray-500">
-            Para cambiar estos datos, contacta al soporte.
-          </p>
+
+          {!editingBasic ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Nombre</label>
+                <p className="text-gray-900">{activeBusiness.name}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Rubro</label>
+                <p className="text-gray-900">{activeBusiness.rubro}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Descripción</label>
+                <p className="text-gray-900">{activeBusiness.description || '—'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">URL pública</label>
+                <p className="text-gray-900 font-mono text-sm">{activeBusiness.slug}</p>
+              </div>
+              <Button size="sm" onClick={() => setEditingBasic(true)} className="w-full">
+                Editar información
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Input
+                label="Nombre"
+                value={basicForm.name}
+                onChange={(e) => setBasicForm({ ...basicForm, name: e.target.value })}
+              />
+              <Input
+                label="Rubro"
+                value={basicForm.rubro}
+                onChange={(e) => setBasicForm({ ...basicForm, rubro: e.target.value })}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <textarea
+                  value={basicForm.description}
+                  onChange={(e) => setBasicForm({ ...basicForm, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                  rows={3}
+                  placeholder="Descripción de tu negocio..."
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveBasic} isLoading={isLoading} className="flex-1">
+                  Guardar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingBasic(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
+      {/* Sección 2: Marca */}
       <Card>
         <CardContent className="space-y-4">
           <h3 className="font-semibold text-lg">Marca</h3>
+
+          <Input
+            label="Logo URL"
+            placeholder="https://example.com/logo.png"
+            value={brandForm.logo_url}
+            onChange={(e) => setBrandForm({ ...brandForm, logo_url: e.target.value })}
+          />
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Color primario
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Color primario</label>
               <div className="flex gap-2">
                 <input
                   type="color"
-                  value={formData.primaryColor}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      primaryColor: e.target.value,
-                    })
-                  }
-                  className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                  value={brandForm.primary_color}
+                  onChange={(e) => setBrandForm({ ...brandForm, primary_color: e.target.value })}
+                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
                 />
                 <input
                   type="text"
-                  value={formData.primaryColor}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      primaryColor: e.target.value,
-                    })
-                  }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  value={brandForm.primary_color}
+                  onChange={(e) => setBrandForm({ ...brandForm, primary_color: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Color secundario
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Color secundario</label>
               <div className="flex gap-2">
                 <input
                   type="color"
-                  value={formData.secondaryColor}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      secondaryColor: e.target.value,
-                    })
-                  }
-                  className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                  value={brandForm.secondary_color}
+                  onChange={(e) => setBrandForm({ ...brandForm, secondary_color: e.target.value })}
+                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
                 />
                 <input
                   type="text"
-                  value={formData.secondaryColor}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      secondaryColor: e.target.value,
-                    })
-                  }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  value={brandForm.secondary_color}
+                  onChange={(e) => setBrandForm({ ...brandForm, secondary_color: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 />
               </div>
             </div>
           </div>
-          <Button
-            onClick={handleSaveColors}
-            isLoading={isSaving}
-            className="w-full"
-          >
-            Guardar colores
+
+          {/* Preview de colores */}
+          <div className="flex gap-2 h-12 rounded-lg overflow-hidden border border-gray-200">
+            <div style={{ backgroundColor: brandForm.primary_color, flex: 1 }} title="Color primario" />
+            <div style={{ backgroundColor: brandForm.secondary_color, flex: 1 }} title="Color secundario" />
+          </div>
+
+          <Button onClick={handleSaveBrand} isLoading={isLoading} className="w-full">
+            Guardar marca
           </Button>
         </CardContent>
       </Card>
 
+      {/* Sección 3: Agenda y email */}
       <Card>
         <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg">Agenda</h3>
+          <h3 className="font-semibold text-lg">Configuración de agenda</h3>
+
           <Input
             label="Horas mínimas de anticipación"
             type="number"
             min="0"
-            value={formData.minAdvanceHours}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                minAdvanceHours: parseInt(e.target.value),
-              })
-            }
+            max="72"
+            value={agendaForm.min_advance_hours}
+            onChange={(e) => setAgendaForm({ ...agendaForm, min_advance_hours: parseInt(e.target.value) })}
           />
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proveedor de email
-            </label>
-            <input
-              type="text"
-              disabled
-              value={business.email_provider === 'resend' ? 'Resend' : 'SMTP'}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Proveedor de email</label>
+            <select
+              value={agendaForm.email_provider}
+              onChange={(e) => setAgendaForm({ ...agendaForm, email_provider: e.target.value as 'resend' | 'smtp' })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+            >
+              <option value="resend">Resend (recomendado)</option>
+              <option value="smtp">SMTP propio</option>
+            </select>
           </div>
+
+          {agendaForm.email_provider === 'smtp' && (
+            <div className="bg-blue-50 p-4 rounded-lg space-y-4 border border-blue-200">
+              <Input
+                label="Host SMTP"
+                placeholder="smtp.gmail.com"
+                value={agendaForm.smtp_host}
+                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_host: e.target.value })}
+              />
+              <Input
+                label="Puerto SMTP"
+                type="number"
+                placeholder="587"
+                value={agendaForm.smtp_port}
+                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_port: e.target.value })}
+              />
+              <Input
+                label="Usuario SMTP"
+                placeholder="tu@email.com"
+                value={agendaForm.smtp_user}
+                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_user: e.target.value })}
+              />
+              <Input
+                label="Contraseña SMTP"
+                type="password"
+                placeholder="••••••••"
+                value={agendaForm.smtp_password}
+                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_password: e.target.value })}
+              />
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="google_calendar"
-              disabled
-              checked={business.google_calendar_enabled}
+              checked={agendaForm.google_calendar_enabled}
+              onChange={(e) => setAgendaForm({ ...agendaForm, google_calendar_enabled: e.target.checked })}
+              className="rounded border-gray-300"
             />
             <label htmlFor="google_calendar" className="text-sm text-gray-700">
-              Google Calendar habilitado
+              Integración con Google Calendar habilitada
             </label>
           </div>
-          <Button
-            onClick={handleSaveAdvance}
-            isLoading={isSaving}
-            className="w-full"
-          >
-            Guardar configuración de agenda
+
+          <Button onClick={handleSaveAgenda} isLoading={isLoading} className="w-full">
+            Guardar configuración
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Sección 4: Plan */}
+      <Card>
+        <CardContent className="space-y-4">
+          <h3 className="font-semibold text-lg">Plan y suscripción</h3>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-2">Estado del plan</label>
+            {getPlanStatusBadge()}
+          </div>
+          {activeBusiness.plan_expires_at && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Vence el</label>
+              <p className="text-gray-900">
+                {new Date(activeBusiness.plan_expires_at).toLocaleDateString('es-AR')}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

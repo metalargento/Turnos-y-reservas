@@ -14,6 +14,7 @@ from middleware.auth import auth_middleware
 # Routers
 from routers.auth_router import router as auth_router
 from routers.onboarding_router import router as onboarding_router
+from routers.business_router import router as business_router
 from routers.services_router import router as services_router
 from routers.branches_router import router as branches_router
 from routers.professionals_router import router as professionals_router
@@ -101,6 +102,7 @@ async def root():
 # Registrar routers
 app.include_router(auth_router)
 app.include_router(onboarding_router)
+app.include_router(business_router)
 app.include_router(services_router)
 app.include_router(branches_router)
 app.include_router(professionals_router)

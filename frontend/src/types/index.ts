@@ -23,8 +23,12 @@ export interface Business {
   primary_color: string;
   secondary_color: string;
   plan_status: 'active' | 'expired' | 'cancelled';
+  plan_expires_at?: string;
   onboarding_completed: boolean;
   email_provider: 'resend' | 'smtp';
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_user?: string;
   min_advance_hours: number;
   google_calendar_enabled: boolean;
 }
