@@ -6,7 +6,7 @@ import { businessApi } from '../api/business';
 import type { Business } from '../types';
 
 export function SettingsPage() {
-  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
+  const { activeBusiness, isLoading: businessLoading, refreshBusiness } = useBusinessContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -70,6 +70,7 @@ export function SettingsPage() {
       setSuccess('Información actualizada correctamente');
       setEditingBasic(false);
       setError('');
+      await refreshBusiness();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar información');
@@ -89,6 +90,7 @@ export function SettingsPage() {
       });
       setSuccess('Marca actualizada correctamente');
       setError('');
+      await refreshBusiness();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar marca');
@@ -117,6 +119,7 @@ export function SettingsPage() {
       await onboardingApi.step5UpdateAgenda(activeBusiness.id, agendaData);
       setSuccess('Configuración de agenda actualizada');
       setError('');
+      await refreshBusiness();
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar configuración');

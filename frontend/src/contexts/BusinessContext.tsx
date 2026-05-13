@@ -9,6 +9,7 @@ interface BusinessContextType {
   isLoading: boolean;
   error: string;
   switchBusiness: (businessId: string) => void;
+  refreshBusiness: () => Promise<void>;
 }
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
@@ -66,6 +67,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshBusiness = async () => {
+    await loadBusinesses();
+  };
+
   return (
     <BusinessContext.Provider
       value={{
@@ -74,6 +79,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         error,
         switchBusiness,
+        refreshBusiness,
       }}
     >
       {children}
