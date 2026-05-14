@@ -1078,3 +1078,390 @@ Se completó la implementación del widget público de reservas con un flujo sim
 ---
 
 *Última actualización: 2026-05-11 (Sesión 6)*
+
+---
+
+## Sesión 7: Dashboard Funcional con Estadísticas
+
+### Resumen
+Se implementó un dashboard funcional que muestra estadísticas en tiempo real del negocio: reservas por período, cancelaciones, clientes únicos y lista de próximas reservas. El design utiliza tarjetas con colores y emojis para mejor UX.
+
+### Backend — Estadísticas del Dashboard
+
+#### Nuevos archivos:
+
+**`backend/schemas/dashboard.py`**
+- `UpcomingBooking` — Datos de próximas reservas (id, client_name, professional_name?, service_name?, starts_at)
+- `DashboardStats` — Modelo de respuesta con 5 métricas + lista de reservas
+
+**`backend/repositories/dashboard_repo.py`**
+- Método `get_stats(business_id)` — Obtiene agregaciones en una sola query SQL con FILTER clauses:
+  - Conteos de reservas para hoy/semana/mes (estado: confirmed, rescheduled)
+  - Conteo de canceladas este mes
+  - Conteo de clientes únicos (DISTINCT client_email) del mes
+  - Timezone: America/Argentina/Buenos_Aires
+- Método `get_upcoming_bookings(business_id, limit=5)` — Lista próximas 5 reservas confirmadas con LEFT JOINs a professionals y services
+
+**`backend/routers/dashboard_router.py`**
+- Endpoint: `GET /api/dashboard/{business_id}` 
+- JWT auth obligatorio + verificación de ownership (403 si no es propietario)
+- Devuelve `DashboardStats` con timestamp formateado en ISO
+
+**Actualizado:** `backend/main.py` — Registrado dashboard_router
+
+### Frontend — Panel de Estadísticas
+
+#### Modificado:
+
+**`frontend/src/types/index.ts`**
+- Agregadas interfaces: `UpcomingBooking` y `DashboardStats`
+
+#### Nuevos archivos:
+
+**`frontend/src/api/dashboard.ts`**
+- API client con método: `getStats(businessId)` → GET `/api/dashboard/{businessId}`
+
+**`frontend/src/pages/DashboardPage.tsx`** (reescrito completamente)
+- Carga estadísticas al montar (cuando `activeBusiness` cambia)
+- Renderiza 5 tarjetas de estadísticas con colores temáticos:
+  - 📅 Hoy (bg-blue-50, text-blue-600)
+  - 📊 Esta semana (bg-green-50, text-green-600)
+  - 📆 Este mes (bg-purple-50, text-purple-600)
+  - ❌ Canceladas (bg-red-50, text-red-600)
+  - 👥 Clientes únicos (bg-orange-50, text-orange-600)
+- Sección "Próximas reservas" con:
+  - Cliente, profesional, servicio, hora y fecha
+  - Link "Ver todas" a `/bookings`
+  - Mensaje "No tenés reservas próximas" si lista vacía
+- Sección "Acciones rápidas" con botones a:
+  - Reservas, Servicios, Profesionales, Disponibilidad
+
+### Características
+
+✅ **Métricas en tiempo real:** Una sola query SQL eficiente con FILTER clauses
+✅ **Diseño visual atractivo:** 5 tarjetas con colores y emojis
+✅ **Próximas reservas:** Lista con 5 turnos más cercanos
+✅ **Navegación rápida:** Botones de acceso directo a módulos principales
+✅ **Responsive:** Grid que se adapta de 1 columna (mobile) a 5 (desktop)
+✅ **Loading states:** Spinner mientras carga datos
+✅ **Ownership verification:** Solo propietarios ven sus estadísticas
+
+### Arquitectura de Datos
+
+```
+Dashboard Component
+  ├─ useBusinessContext() — obtiene activeBusiness
+  ├─ useEffect([activeBusiness?.id]) — dispara carga
+  └─ dashboardApi.getStats(businessId)
+       ↓
+  Backend GET /api/dashboard/{business_id}
+       ↓
+  verify_token + ownership check
+       ↓
+  dashboard_repo.get_stats() [1 query con FILTER]
+  dashboard_repo.get_upcoming_bookings() [1 query con JOINs]
+       ↓
+  DashboardStats response
+```
+
+### Próximos pasos
+
+1. **Testing:** Verificar rendering de tarjetas y carga de datos
+2. **Disponibilidad:** Página para que profesionales definan horarios semanales
+3. **Email & Pagos:** Integraciones con Resend y Mercado Pago
+4. **Reportes:** Gráficos y análisis más detallados (charts)
+
+---
+
+**Resumen de cambios:**
+- **Archivos nuevos:** 4 (3 backend + 1 frontend)
+- **Archivos modificados:** 3 (main.py, types, DashboardPage)
+- **Endpoint nuevo:** 1 (`GET /api/dashboard/{business_id}`)
+- **Líneas de código:** ~300 backend + ~260 frontend
+
+*Última actualización: 2026-05-13 (Sesión 7)*
+
+---
+
+## Sesión 8: Migración a PostgreSQL Local + Sistema Automático de Migraciones
+
+### Resumen
+Se resolvió el problema de conexión a Supabase migrando la base de datos a PostgreSQL 16 en Docker local. Se implementó un **sistema automático de migraciones** donde GitHub es la fuente de verdad del schema — las migraciones SQL se versionan en el repositorio y se ejecutan automáticamente en el startup de la aplicación.
+
+### El Problema Original
+El backend no podía conectarse a Supabase. Tras investigar, se decidió usar PostgreSQL en Docker local (control total sobre schema + versionamiento de migraciones en Git).
+
+### Cambios Implementados
+
+#### 1. Docker Compose — PostgreSQL Local
+
+**Archivo:** `docker-compose.yml`
+
+```yaml
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: turnos-reservas-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: turnos_reservas
+    ports:
+      - "5433:5432"  # Puerto local 5433 (evita conflicto con PG local en 5432)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+```
+
+**Por qué puerto 5433:** Existía un PostgreSQL local en puerto 5432. Docker usa 5433 para no entrar en conflicto.
+
+---
+
+#### 2. Variables de Entorno
+
+**Archivo:** `backend/.env`
+
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5433/turnos_reservas
+```
+
+Se actualizó para apuntar al puerto 5433 de Docker.
+
+---
+
+#### 3. Sistema Automático de Migraciones
+
+**Archivo NUEVO:** `backend/migrations/run_migrations.py`
+
+Este script es la **piedra angular** del sistema:
+
+```python
+def run_migrations():
+    """
+    Ejecuta todas las migraciones SQL pendientes en orden alfabético.
+    
+    - Lee archivos 00X_*.sql desde backend/migrations/
+    - Crea tabla schema_migrations si no existe
+    - Ejecuta solo las migraciones no registradas
+    - Registra cada migración ejecutada
+    - Si hay error, detiene el startup
+    """
+```
+
+**Cómo funciona:**
+
+1. **Conexión directa a DB** (no reutiliza el client de la app)
+   ```python
+   conn = psycopg2.connect(DATABASE_URL)
+   conn.autocommit = True  # Permite DDL (CREATE TABLE, etc)
+   ```
+
+2. **Crea tabla de tracking** si no existe
+   ```sql
+   CREATE TABLE IF NOT EXISTS schema_migrations (
+       migration TEXT PRIMARY KEY,
+       executed_at TIMESTAMP DEFAULT NOW()
+   )
+   ```
+
+3. **Lee migraciones en orden**
+   ```python
+   migration_files = sorted(Path("migrations").glob("*.sql"))
+   for file in migration_files:
+       migration_name = file.name  # "001_create_users.sql"
+   ```
+
+4. **Ejecuta solo pendientes**
+   ```python
+   cursor.execute("SELECT 1 FROM schema_migrations WHERE migration = %s", (migration_name,))
+   if cursor.fetchone():
+       continue  # Ya ejecutada, saltar
+   
+   # Ejecutar SQL del archivo
+   cursor.execute(sql)
+   
+   # Registrar en schema_migrations
+   cursor.execute("INSERT INTO schema_migrations (migration) VALUES (%s)", (migration_name,))
+   ```
+
+5. **Manejo de errores**
+   - Si una migración falla, se lanza excepción
+   - FastAPI no inicia si hay error en migraciones
+   - El usuario ve el error en los logs y puede investigar
+
+**Archivo NUEVO:** `backend/migrations/__init__.py`
+```python
+"""
+Módulo de migraciones de base de datos.
+
+Las migraciones se ejecutan automáticamente en el startup de la aplicación.
+"""
+```
+
+---
+
+#### 4. Integración con FastAPI Startup
+
+**Archivo modificado:** `backend/main.py`
+
+```python
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Iniciando aplicación...")
+    
+    # ⭐ CRÍTICO: Migraciones ANTES de conectar a DB
+    run_migrations()
+    
+    # Ahora sí, conectar
+    await db.connect()
+    
+    logger.info("Aplicación iniciada correctamente")
+```
+
+**Por qué aquí:** Las migraciones crean las tablas. Si la app intenta usar la DB antes de que existan las tablas, falla. Ejecutar migraciones primero garantiza que el schema está actualizado.
+
+---
+
+### Flujo de Despliegue (GitHub → Producción)
+
+```
+1. Developer escribe nuevo archivo:
+   backend/migrations/008_add_column_x.sql
+   
+2. Git push
+   ↓
+   
+3. En servidor:
+   docker-compose down -v  (limpiar volumen si falla)
+   docker-compose up       (inicia PG + backend)
+   ↓
+   
+4. Backend startup:
+   - run_migrations() detecta 008_add_column_x.sql
+   - La ejecuta
+   - La registra en schema_migrations
+   - La siguiente vez, la salta
+   ↓
+   
+5. Backend listo
+   - Schema actualizado
+   - Aplicación corriendo
+   - Clientes happy
+```
+
+---
+
+### Características del Sistema
+
+✅ **Idempotente:** Las migraciones pueden ejecutarse múltiples veces sin error
+   - Cada migración solo corre UNA VEZ (tracked en schema_migrations)
+   - Si corres `docker-compose up` 10 veces, no pasa nada
+   
+✅ **Automático:** Cero trabajo manual en despliegue
+   - No requiere SSH al servidor para ejecutar migrations
+   - No requiere scripts manuales
+   - docker-compose up lo hace todo
+
+✅ **Seguro:** Los errores detienen el servidor
+   - Si la migración falla, la app no inicia
+   - El dueño ve el error en los logs
+   - No hay base datos parcialmente actualizada
+
+✅ **Auditado:** Historial completo de cambios
+   - Tabla schema_migrations muestra qué se ejecutó y cuándo
+   - Git guarda el código SQL de cada migración
+   - Fácil saber qué cambios hay entre versiones
+
+---
+
+### Testing del Sistema
+
+**Verified flujo completo:**
+```
+1. docker-compose up
+   ↓
+2. Backend startup logs:
+   ✅ Tabla schema_migrations verificada
+   ✅ Migración ejecutada: 001_create_users.sql
+   ✅ Migración ejecutada: 002_create_businesses.sql
+   ✅ Migración ejecutada: 003_create_branches.sql
+   ✅ Migración ejecutada: 004_create_professionals.sql
+   ✅ Migración ejecutada: 005_create_services.sql
+   ✅ Migración ejecutada: 006_create_schedules.sql
+   ✅ Migración ejecutada: 007_create_bookings.sql
+   ✅ Todas las migraciones completadas
+   ✅ Conexión a base de datos establecida
+   ✅ Aplicación iniciada correctamente
+   ↓
+3. Backend corriendo en http://0.0.0.0:8000
+```
+
+---
+
+### Documentación Actualizada
+
+**Archivo modificado:** `CLAUDE.md`
+
+Se agregó sección **"Sistema de Migraciones"** completa con:
+- Explicación de cómo funciona
+- Workflow de despliegue
+- Instrucciones para agregar nuevas migraciones
+- Confirmación que todas las migraciones son idempotentes
+
+```markdown
+## Sistema de Migraciones
+
+**GitHub es la fuente de verdad del schema** — las migraciones SQL se versionan en el repo y se ejecutan automáticamente en startup.
+
+### Cómo funciona:
+
+1. Archivos en `backend/migrations/`: 001_create_users.sql, 002_create_businesses.sql, etc.
+   - Se ejecutan en orden (por nombre)
+
+2. Ejecución automática:
+   - `migrations/run_migrations.py` corre en evento `startup` de FastAPI
+   - Crea tabla `schema_migrations` para trackear ejecutadas
+   - Solo ejecuta las que faltan (idempotentes)
+
+3. Workflow:
+   git push → Pull en servidor → docker-compose up → migraciones automáticas → app ready
+
+### Para agregar una migración nueva:
+
+1. Crear archivo en backend/migrations/
+   Ej: 008_add_column_to_users.sql
+
+2. Escribir SQL (puede tener múltiples statements)
+   ALTER TABLE users ADD COLUMN phone TEXT;
+
+3. Hacer git push
+
+4. En servidor: docker-compose up
+   Las migraciones corren automáticamente
+
+**Importante:** Todas las migraciones son idempotentes. Pueden correr múltiples veces sin error.
+```
+
+---
+
+### Ventajas vs Supabase
+
+| Aspecto | Supabase | PostgreSQL Local |
+|--------|---------|------------------|
+| **Control** | Sin control del schema | Control total |
+| **Versionamiento** | Manual (no hay) | En Git con cada commit |
+| **Despliegue** | Manual (con CLI) | Automático en startup |
+| **Desarrollo** | Conexiones remotas lentas | Conección local instant |
+| **Costo** | Requiere account | Gratuito en local |
+| **Escalabilidad** | Requiere upgrade Supabase | Migramos a RDS/CloudSQL después |
+
+---
+
+### Próximos pasos
+
+1. **Testing en servidor:** Subir cambios a GitHub y probar que `docker-compose up` hace todo automáticamente
+2. **Página de Disponibilidad:** Interfaz para profesionales definan horarios semanales
+3. **Integraciones:** Resend (emails), Mercado Pago (pagos)
+
+---
+
+*Última actualización: 2026-05-14 (Sesión 8 - Migración a PostgreSQL Local)*

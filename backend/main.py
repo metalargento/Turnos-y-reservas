@@ -22,6 +22,7 @@ from routers.availability_router import router as availability_router, blocks_ro
 from routers.booking_router import router as booking_router
 from routers.booking_public_router import router as booking_public_router
 from routers.dashboard_router import router as dashboard_router
+from migrations.run_migrations import run_migrations
 
 
 # Crear aplicación
@@ -77,6 +78,7 @@ async def health_check():
 async def startup_event():
     """Inicializa la aplicación al arrancar."""
     logger.info("Iniciando aplicación...")
+    run_migrations()
     db.connect()
     logger.info("Aplicación iniciada correctamente")
 
