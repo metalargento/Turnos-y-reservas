@@ -254,23 +254,32 @@ export function ProfessionalsPage() {
           professionals.map((prof) => (
             <Card key={prof.id}>
               <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {prof.display_name}
-                    </h3>
-                    {prof.branch_id && (
-                      <p className="text-sm text-gray-600">
-                        📍{' '}
-                        {branches.find((b) => b.id === prof.branch_id)?.name ||
-                          'Sucursal desconocida'}
-                      </p>
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex gap-4 flex-1">
+                    {prof.avatar_url && (
+                      <img
+                        src={prof.avatar_url}
+                        alt={prof.display_name}
+                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                      />
                     )}
-                    {prof.bio && (
-                      <p className="text-sm text-gray-600 mt-1">{prof.bio}</p>
-                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">
+                        {prof.display_name}
+                      </h3>
+                      {prof.branch_id && (
+                        <p className="text-sm text-gray-600">
+                          📍{' '}
+                          {branches.find((b) => b.id === prof.branch_id)?.name ||
+                            'Sucursal desconocida'}
+                        </p>
+                      )}
+                      {prof.bio && (
+                        <p className="text-sm text-gray-600 mt-1">{prof.bio}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button
                       size="sm"
                       variant="outline"

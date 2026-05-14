@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Button, Input, Alert } from '../components/ui';
+import { Card, CardContent, Button, Input, Alert, TimeSlotSelector } from '../components/ui';
 import { bookingsApi } from '../api/bookings';
 import { professionalsApi } from '../api/professionals';
 import { servicesApi } from '../api/services';
@@ -23,7 +23,6 @@ export function BookingsPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showForm, setShowForm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [formData, setFormData] = useState<BookingCreateRequest>({
     professional_id: '',
@@ -33,6 +32,22 @@ export function BookingsPage() {
     starts_at: '',
     ends_at: '',
   });
+
+  const calculateEndTime = (startTime: string, serviceDurationMinutes: number) => {
+    const start = new Date(startTime);
+    const end = new Date(start.getTime() + serviceDurationMinutes * 60000);
+    return end.toISOString();
+  };
+
+  const handleTimeSlotChange = (datetime: string) => {
+    const selectedService = services.find((s) => s.id === formData.service_id);
+    if (selectedService) {
+      const endTime = calculateEndTime(datetime, selectedService.duration_minutes);
+      setFormData({ ...formData, starts_at: datetime, ends_at: endTime });
+    } else {
+      setFormData({ ...formData, starts_at: datetime });
+    }
+  };
 
   useEffect(() => {
     loadBusiness();
@@ -90,7 +105,6 @@ export function BookingsPage() {
         starts_at: '',
         ends_at: '',
       });
-      setShowForm(false);
       loadAllData();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al crear reserva');
@@ -142,32 +156,17 @@ export function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
-        <Button onClick={() => setShowForm(true)}>+ Nueva reserva</Button>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
-      <div className="flex gap-2">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-        >
-          <option value="">Todas las reservas</option>
-          <option value="confirmed">Confirmadas</option>
-          <option value="cancelled">Canceladas</option>
-          <option value="completed">Completadas</option>
-        </select>
-      </div>
-
-      {showForm && (
-        <Card>
-          <CardContent className="space-y-4">
-            <h3 className="font-semibold text-lg">Nueva reserva</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-6 min-h-screen">
+        {/* Columna Izquierda: Formulario */}
+        <div className="col-span-1">
+          <Card className="sticky top-6">
+            <CardContent className="space-y-4">
+              <h3 className="font-semibold text-lg">Nueva reserva</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Profesional *
@@ -195,7 +194,17 @@ export function BookingsPage() {
                   </label>
                   <select
                     value={formData.service_id}
-                    onChange={(e) => setFormData({ ...formData, service_id: e.target.value })}
+                    onChange={(e) => {
+                      const serviceId = e.target.value;
+                      setFormData({ ...formData, service_id: serviceId });
+                      if (formData.starts_at && serviceId) {
+                        const selectedService = services.find((s) => s.id === serviceId);
+                        if (selectedService) {
+                          const endTime = calculateEndTime(formData.starts_at, selectedService.duration_minutes);
+                          setFormData((prev) => ({ ...prev, ends_at: endTime }));
+                        }
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
                     required
                   >
@@ -207,137 +216,128 @@ export function BookingsPage() {
                     ))}
                   </select>
                 </div>
-              </div>
 
-              <Input
-                label="Nombre del cliente *"
-                value={formData.client_name}
-                onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                required
-              />
+                <Input
+                  label="Nombre del cliente *"
+                  value={formData.client_name}
+                  onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                  required
+                />
 
-              <Input
-                label="Email del cliente *"
-                type="email"
-                value={formData.client_email}
-                onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-                required
-              />
+                <Input
+                  label="Email del cliente *"
+                  type="email"
+                  value={formData.client_email}
+                  onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+                  required
+                />
 
-              <Input
-                label="Teléfono (opcional)"
-                value={formData.client_phone || ''}
-                onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
-              />
+                <Input
+                  label="Teléfono (opcional)"
+                  value={formData.client_phone || ''}
+                  onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Inicio *
-                  </label>
-                  <input
-                    type="datetime-local"
+                {formData.professional_id && (
+                  <TimeSlotSelector
+                    professionalId={formData.professional_id}
                     value={formData.starts_at}
-                    onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                    required
+                    onChange={handleTimeSlotChange}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fin *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.ends_at}
-                    onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                    required
-                  />
-                </div>
-              </div>
+                )}
 
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
+                <Button type="submit" className="w-full">
                   Crear reserva
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="space-y-3">
-        {bookings.length === 0 ? (
-          <Card>
-            <CardContent className="text-center text-gray-500 py-8">
-              No hay reservas. Crea tu primera reserva.
+              </form>
             </CardContent>
           </Card>
-        ) : (
-          bookings.map((booking) => (
-            <Card key={booking.id}>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-3 gap-4 mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{booking.client_name}</h3>
-                    <p className="text-sm text-gray-600">{booking.client_email}</p>
-                    {booking.client_phone && (
-                      <p className="text-sm text-gray-600">{booking.client_phone}</p>
-                    )}
-                  </div>
+        </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Profesional</p>
-                    <p className="text-gray-900">{getProfessionalName(booking.professional_id || '')}</p>
-                    <p className="text-sm text-gray-600">{getServiceName(booking.service_id || '')}</p>
-                  </div>
+        {/* Columna Derecha: Lista de Reservas */}
+        <div className="col-span-2">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Filtrar por estado
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+              >
+                <option value="">Todas las reservas</option>
+                <option value="confirmed">Confirmadas</option>
+                <option value="cancelled">Canceladas</option>
+                <option value="completed">Completadas</option>
+              </select>
+            </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Horario</p>
-                    <p className="text-gray-900">{formatDate(booking.starts_at)}</p>
-                    <p className="text-sm text-gray-600">hasta {formatDate(booking.ends_at)}</p>
-                  </div>
-                </div>
+            <div className="space-y-3">
+              {bookings.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center text-gray-500 py-8">
+                    No hay reservas. Crea tu primera reserva.
+                  </CardContent>
+                </Card>
+              ) : (
+                bookings.map((booking) => (
+                  <Card key={booking.id}>
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{booking.client_name}</h3>
+                          <p className="text-sm text-gray-600">{booking.client_email}</p>
+                          {booking.client_phone && (
+                            <p className="text-sm text-gray-600">{booking.client_phone}</p>
+                          )}
+                        </div>
 
-                <div className="flex items-center justify-between pt-3 border-t">
-                  <div className="flex gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(booking.status)}`}>
-                      {booking.status}
-                    </span>
-                    {booking.payment_required && (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                        💰 ${booking.payment_amount}
-                      </span>
-                    )}
-                  </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Profesional</p>
+                          <p className="text-gray-900">{getProfessionalName(booking.professional_id || '')}</p>
+                          <p className="text-sm text-gray-600">{getServiceName(booking.service_id || '')}</p>
+                        </div>
+                      </div>
 
-                  {booking.status === 'confirmed' && (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => handleCancel(booking.id)}
-                    >
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
+                      <div className="mb-3 p-3 bg-gray-50 rounded">
+                        <p className="text-sm font-medium text-gray-700">Horario</p>
+                        <p className="text-gray-900">{formatDate(booking.starts_at)}</p>
+                      </div>
 
-                {booking.client_notes && (
-                  <p className="text-sm text-gray-600 mt-2 italic">Nota: {booking.client_notes}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <div className="flex gap-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(booking.status)}`}>
+                            {booking.status}
+                          </span>
+                          {booking.payment_required && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                              💰 ${booking.payment_amount}
+                            </span>
+                          )}
+                        </div>
+
+                        {booking.status === 'confirmed' && (
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            onClick={() => handleCancel(booking.id)}
+                          >
+                            Cancelar
+                          </Button>
+                        )}
+                      </div>
+
+                      {booking.client_notes && (
+                        <p className="text-sm text-gray-600 mt-2 italic">Nota: {booking.client_notes}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
