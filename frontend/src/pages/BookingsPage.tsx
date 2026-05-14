@@ -176,10 +176,10 @@ export function BookingsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, professional_id: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
                     required
                   >
-                    <option value="">Selecciona profesional</option>
+                    <option value="">Seleccione profesional</option>
                     {professionals.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.display_name}
@@ -205,10 +205,10 @@ export function BookingsPage() {
                         }
                       }
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
                     required
                   >
-                    <option value="">Selecciona servicio</option>
+                    <option value="">Seleccione servicio</option>
                     {services.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name} ({s.duration_minutes} min)
@@ -246,9 +246,28 @@ export function BookingsPage() {
                   />
                 )}
 
-                <Button type="submit" className="w-full">
-                  Crear reserva
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setFormData({
+                        professional_id: '',
+                        service_id: '',
+                        client_name: '',
+                        client_email: '',
+                        starts_at: '',
+                        ends_at: '',
+                      });
+                    }}
+                  >
+                    Reset
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    Crear reserva
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -264,7 +283,7 @@ export function BookingsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
               >
                 <option value="">Todas las reservas</option>
                 <option value="confirmed">Confirmadas</option>

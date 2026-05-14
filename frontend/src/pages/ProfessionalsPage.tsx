@@ -18,7 +18,6 @@ export function ProfessionalsPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<Set<string>>(
     new Set()
@@ -60,7 +59,6 @@ export function ProfessionalsPage() {
     });
     setEditingId(prof.id);
     setSelectedServices(new Set());
-    setShowForm(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,184 +120,177 @@ export function ProfessionalsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Profesionales</h1>
-        <Button
-          onClick={() => {
-            setFormData({ display_name: '' });
-            setEditingId(null);
-            setSelectedServices(new Set());
-            setShowForm(true);
-          }}
-        >
-          + Nuevo profesional
-        </Button>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-900">Profesionales</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
-      {showForm && (
-        <Card>
-          <CardContent className="space-y-4">
-            <h3 className="font-semibold text-lg">
-              {editingId ? 'Editar profesional' : 'Nuevo profesional'}
-            </h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                label="Nombre del profesional"
-                value={formData.display_name}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    display_name: e.target.value,
-                  })
-                }
-                required
-              />
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sucursal (opcional)
-                </label>
-                <select
-                  value={formData.branch_id || ''}
+      <div className="grid grid-cols-3 gap-6 min-h-screen">
+        {/* Columna Izquierda: Formulario */}
+        <div className="col-span-1">
+          <Card className="sticky top-6">
+            <CardContent className="space-y-4">
+              <h3 className="font-semibold text-lg">
+                {editingId ? 'Editar profesional' : 'Nuevo profesional'}
+              </h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Input
+                  label="Nombre del profesional"
+                  value={formData.display_name}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      branch_id: e.target.value || undefined,
+                      display_name: e.target.value,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
-                >
-                  <option value="">-- Sin sucursal --</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Input
-                label="Bio (opcional)"
-                value={formData.bio || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, bio: e.target.value })
-                }
-              />
-              <Input
-                label="URL Avatar (opcional)"
-                value={formData.avatar_url || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, avatar_url: e.target.value })
-                }
-              />
-
-              {services.length > 0 && (
+                  required
+                />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Servicios que realiza
+                    Sucursal (opcional)
                   </label>
-                  <div className="space-y-2 bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
-                    {services.map((service) => (
-                      <div key={service.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={service.id}
-                          checked={selectedServices.has(service.id)}
-                          onChange={() => toggleService(service.id)}
-                          className="w-4 h-4"
-                        />
-                        <label
-                          htmlFor={service.id}
-                          className="ml-2 text-sm text-gray-700"
-                        >
-                          {service.name} ({service.duration_minutes} min)
-                        </label>
-                      </div>
+                  <select
+                    value={formData.branch_id || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        branch_id: e.target.value || undefined,
+                      })
+                    }
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
+                  >
+                    <option value="">-- Sin sucursal --</option>
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
-              )}
+                <Input
+                  label="Bio (opcional)"
+                  value={formData.bio || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
+                />
+                <Input
+                  label="URL Avatar (opcional)"
+                  value={formData.avatar_url || ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, avatar_url: e.target.value })
+                  }
+                />
 
-              <div className="flex gap-2">
-                <Button type="submit" className="flex-1">
-                  Guardar
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingId(null);
-                    setFormData({ display_name: '' });
-                    setSelectedServices(new Set());
-                  }}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4">
-        {professionals.length === 0 ? (
-          <Card>
-            <CardContent className="text-center text-gray-500 py-8">
-              No hay profesionales. Agrega tu primer profesional.
-            </CardContent>
-          </Card>
-        ) : (
-          professionals.map((prof) => (
-            <Card key={prof.id}>
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start gap-4">
-                  <div className="flex gap-4 flex-1">
-                    {prof.avatar_url && (
-                      <img
-                        src={prof.avatar_url}
-                        alt={prof.display_name}
-                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-                      />
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">
-                        {prof.display_name}
-                      </h3>
-                      {prof.branch_id && (
-                        <p className="text-sm text-gray-600">
-                          📍{' '}
-                          {branches.find((b) => b.id === prof.branch_id)?.name ||
-                            'Sucursal desconocida'}
-                        </p>
-                      )}
-                      {prof.bio && (
-                        <p className="text-sm text-gray-600 mt-1">{prof.bio}</p>
-                      )}
+                {services.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Servicios que realiza
+                    </label>
+                    <div className="space-y-2 bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
+                      {services.map((service) => (
+                        <div key={service.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={service.id}
+                            checked={selectedServices.has(service.id)}
+                            onChange={() => toggleService(service.id)}
+                            className="w-4 h-4"
+                          />
+                          <label
+                            htmlFor={service.id}
+                            className="ml-2 text-sm text-gray-700"
+                          >
+                            {service.name} ({service.duration_minutes} min)
+                          </label>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEdit(prof)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      onClick={() => handleDelete(prof.id)}
-                    >
-                      Eliminar
-                    </Button>
-                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setFormData({ display_name: '' });
+                      setEditingId(null);
+                      setSelectedServices(new Set());
+                    }}
+                  >
+                    Reset
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    {editingId ? 'Actualizar' : 'Crear profesional'}
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Columna Derecha: Lista de Profesionales */}
+        <div className="col-span-2">
+          <div className="space-y-3">
+            {professionals.length === 0 ? (
+              <Card>
+                <CardContent className="text-center text-gray-500 py-8">
+                  No hay profesionales. Agrega tu primer profesional.
+                </CardContent>
+              </Card>
+            ) : (
+              professionals.map((prof) => (
+                <Card key={prof.id}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex gap-4 flex-1">
+                        {prof.avatar_url && (
+                          <img
+                            src={prof.avatar_url}
+                            alt={prof.display_name}
+                            className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {prof.display_name}
+                          </h3>
+                          {prof.branch_id && (
+                            <p className="text-sm text-gray-600">
+                              📍{' '}
+                              {branches.find((b) => b.id === prof.branch_id)?.name ||
+                                'Sucursal desconocida'}
+                            </p>
+                          )}
+                          {prof.bio && (
+                            <p className="text-sm text-gray-600 mt-1">{prof.bio}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(prof)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(prof.id)}
+                        >
+                          Eliminar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

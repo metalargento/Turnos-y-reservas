@@ -8,12 +8,22 @@ interface TimeSlotSelectorProps {
   onChange: (datetime: string) => void;
 }
 
+interface ScheduleBlock {
+  id: string;
+  blocked_from: string;
+  blocked_until: string;
+  reason?: string;
+}
+
 export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSelectorProps) {
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [scheduleBlocks, setScheduleBlocks] = useState<ScheduleBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [availableHours, setAvailableHours] = useState<string[]>([]);
+  const [blockedHours, setBlockedHours] = useState<Set<string>>(new Set());
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
 
   useEffect(() => {
     loadAvailability();
@@ -30,15 +40,25 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
   }, [value]);
 
   useEffect(() => {
+    generateAvailableDates();
+  }, [availabilities]);
+
+  useEffect(() => {
     if (selectedDate) {
       updateAvailableHours();
     }
-  }, [selectedDate, availabilities]);
+  }, [selectedDate, availabilities, scheduleBlocks]);
 
   const loadAvailability = async () => {
     try {
-      const result = await availabilityApi.getAvailability(professionalId);
-      setAvailabilities(result.data.availabilities);
+      const [availResult, blocksResult] = await Promise.all([
+        availabilityApi.getAvailability(professionalId),
+        fetch(`/api/schedule-blocks/${professionalId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }).then(r => r.json()),
+      ]);
+      setAvailabilities(availResult.data.availabilities);
+      setScheduleBlocks(blocksResult.data?.schedule_blocks || []);
     } catch (err) {
       console.error('Error cargando disponibilidad:', err);
     } finally {
@@ -51,9 +71,46 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
     return date.getUTCDay();
   };
 
+  const isTimeBlocked = (dateStr: string, timeStr: string): boolean => {
+    const dateTime = new Date(`${dateStr}T${timeStr}:00`);
+    return scheduleBlocks.some((block) => {
+      const blockStart = new Date(block.blocked_from);
+      const blockEnd = new Date(block.blocked_until);
+      return dateTime >= blockStart && dateTime < blockEnd;
+    });
+  };
+
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  const generateAvailableDates = () => {
+    const dates: string[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 365; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(checkDate.getDate() + i);
+      const dayOfWeek = checkDate.getUTCDay();
+      const hasAvailability = availabilities.some(
+        (a) => a.day_of_week === dayOfWeek && a.is_active
+      );
+      if (hasAvailability) {
+        const dateStr = checkDate.toISOString().split('T')[0];
+        dates.push(dateStr);
+      }
+    }
+
+    setAvailableDates(dates);
+  };
+
   const updateAvailableHours = () => {
     if (!selectedDate) {
       setAvailableHours([]);
+      setBlockedHours(new Set());
       return;
     }
 
@@ -64,6 +121,7 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
 
     if (!dayAvailability) {
       setAvailableHours([]);
+      setBlockedHours(new Set());
       return;
     }
 
@@ -73,16 +131,24 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
     const endTotalMin = endHour * 60 + endMin;
 
     const hours: string[] = [];
+    const blocked = new Set<string>();
+
     for (let min = startTotalMin; min < endTotalMin; min += 30) {
       const h = Math.floor(min / 60);
       const m = min % 60;
-      hours.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      hours.push(timeStr);
+
+      if (isTimeBlocked(selectedDate, timeStr)) {
+        blocked.add(timeStr);
+      }
     }
 
     setAvailableHours(hours);
+    setBlockedHours(blocked);
   };
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDate = e.target.value;
     setSelectedDate(newDate);
     setSelectedTime('');
@@ -97,33 +163,9 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
     }
   };
 
-  const getDisabledDates = (): Set<string> => {
-    const disabled = new Set<string>();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < 365; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(checkDate.getDate() + i);
-      const dayOfWeek = checkDate.getUTCDay();
-      const hasAvailability = availabilities.some(
-        (a) => a.day_of_week === dayOfWeek && a.is_active
-      );
-      if (!hasAvailability) {
-        const dateStr = checkDate.toISOString().split('T')[0];
-        disabled.add(dateStr);
-      }
-    }
-
-    return disabled;
-  };
-
   if (isLoading) {
     return <div className="text-sm text-gray-600">Cargando disponibilidad...</div>;
   }
-
-  const disabledDates = getDisabledDates();
-  const minDate = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-3">
@@ -131,17 +173,19 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Fecha *
         </label>
-        <input
-          type="date"
+        <select
           value={selectedDate}
           onChange={handleDateChange}
-          min={minDate}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+          className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
           required
-        />
-        {selectedDate && disabledDates.has(selectedDate) && (
-          <p className="text-xs text-red-600 mt-1">⚠️ No hay disponibilidad este día</p>
-        )}
+        >
+          <option value="">Seleccione fecha</option>
+          {availableDates.map((date) => (
+            <option key={date} value={date}>
+              {formatDateForDisplay(date)}
+            </option>
+          ))}
+        </select>
       </div>
 
       {selectedDate && availableHours.length > 0 && (
@@ -152,13 +196,18 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
           <select
             value={selectedTime}
             onChange={handleTimeChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
             required
           >
-            <option value="">Selecciona horario</option>
+            <option value="">Seleccione horario</option>
             {availableHours.map((hour) => (
-              <option key={hour} value={hour}>
+              <option
+                key={hour}
+                value={hour}
+                disabled={blockedHours.has(hour)}
+              >
                 {hour}
+                {blockedHours.has(hour) ? ' ✗ Bloqueado' : ''}
               </option>
             ))}
           </select>
