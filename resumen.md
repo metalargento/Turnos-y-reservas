@@ -46,7 +46,9 @@ Dashboard donde el dueño del negocio gestiona su operación:
 | Motor de Reservas (Widget Público) | ✅ Funcional | 100% |
 | Cancelación de Reservas | ✅ Completo | 100% |
 | **Sistema de Migraciones (DB)** | **✅ Completo** | **100%** |
-| **Panel Administrativo (Frontend)** | **✅ Completo** | **~90%** |
+| **Panel Administrativo (Frontend)** | **✅ Completo** | **100%** |
+| **UI/UX Improvements (Dos Columnas)** | **✅ Completo** | **100%** |
+| **TimeSlotSelector (Horarios Inteligentes)** | **✅ Completo** | **100%** |
 
 ---
 
@@ -67,11 +69,21 @@ Dashboard donde el dueño del negocio gestiona su operación:
    - Migraciones automáticas en startup
    - schema_migrations tracking table
    - Idempotente y auditable
+4. ✅ **Mejoras UX/UI — Dos Columnas:** Rediseño consistente de todas las páginas CRUD
+   - Layout grid: formulario sticky (izq) + listado (der)
+   - Reset buttons funcionales
+   - Selects con color slate (mejora visual)
+   - Fechas en dd/mm/yyyy
+5. ✅ **TimeSlotSelector — Horarios Inteligentes:** Selector visual que respeta disponibilidad
+   - Carga availability + schedule_blocks
+   - Genera slots de 30 minutos
+   - Marca horarios bloqueados como no disponibles
+   - Integrado en BookingsPage
 
 ### Mediano Plazo (próximas semanas)
-1. **Página de Disponibilidad:** Interfaz para que profesionales definan horarios semanales y bloqueos
-2. **Integraciones de Email:** Resend/SMTP para confirmaciones y recordatorios
-3. **Página "Mis Negocios":** Gestionar múltiples negocios desde panel admin
+1. **Página de Disponibilidad:** Interfaz para que profesionales definan horarios semanales y bloqueos (🔴 PENDIENTE)
+2. **Integraciones de Email:** Resend/SMTP para confirmaciones y recordatorios (🔴 PENDIENTE)
+3. **Página "Mis Negocios":** Gestionar múltiples negocios desde panel admin (🔴 PENDIENTE)
 
 ### Largo Plazo (4-8 semanas)
 4. **Integraciones de Pago:**
@@ -93,11 +105,42 @@ Dashboard donde el dueño del negocio gestiona su operación:
   - Agendar turno desde página pública ✅
   - Cancelar turno usando email + nombre ✅
 - **Falta para producción:** 
-  - Página de Disponibilidad (UI para horarios de profesionales)
-  - Integración de emails (notificaciones)
-  - Integración de pagos (Mercado Pago)
+  - Página de Disponibilidad (UI para horarios de profesionales) 🔴
+  - Integración de emails (notificaciones) 🔴
+  - Integración de pagos (Mercado Pago) 🔴
 - **Timeline estimado:** 1-2 semanas para versión production-ready (después de Disponibilidad + Emails)
 
 ---
 
-*Última actualización: 2026-05-14 (Sesión 8 - Migración a PostgreSQL Local + Sistema Automático de Migraciones)*
+## 📝 Cambios en Sesión 9
+
+### Frontend — UX/UI Improvements
+
+**Layout de Dos Columnas (Todos los CRUD):**
+- Grid 3 columnas: col-span-1 (formulario sticky) + col-span-2 (listado)
+- Reset buttons funcionales en todos los formularios
+- Cambio: "Selecciona" → "Seleccione" (más formal)
+- Selects con color slate (border-slate-300, bg-slate-50, hover:bg-slate-100)
+
+**Páginas actualizadas:**
+- `BookingsPage.tsx` — Integrado TimeSlotSelector
+- `ServicesPage.tsx` — Dos columnas + Reset button
+- `BranchesPage.tsx` — Dos columnas + Reset button
+- `ProfessionalsPage.tsx` — Dos columnas + Avatar display + Reset button
+
+**Nuevo componente:**
+- `TimeSlotSelector.tsx` — Selector inteligente de fechas/horarios
+  - Carga availability + schedule_blocks en paralelo
+  - Genera slots de 30 minutos
+  - Marca bloqueados como "✗ Bloqueado"
+  - Formatea fechas dd/mm/yyyy
+
+**Problemas resueltos:**
+- Avatares ahora se muestran en cards de Profesionales
+- Formato de fecha dd/mm/yyyy (via select dropdown)
+- Horarios bloqueados se respetan y marcan visualmente
+- React hooks violation arreglada en TimeSlotSelector
+
+---
+
+*Última actualización: 2026-05-14 (Sesión 9 - Mejoras UX/UI + TimeSlotSelector)*

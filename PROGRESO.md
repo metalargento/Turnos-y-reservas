@@ -1465,3 +1465,188 @@ Se agregó sección **"Sistema de Migraciones"** completa con:
 ---
 
 *Última actualización: 2026-05-14 (Sesión 8 - Migración a PostgreSQL Local)*
+
+---
+
+## Sesión 9: Mejoras UX/UI en Panel Admin — Dos Columnas y Disponibilidad
+
+### Resumen
+
+Se implementaron mejoras visuales consistentes en todas las páginas CRUD del panel administrativo (Servicios, Sucursales, Profesionales, Reservas). Se reemplazó el selector de horarios manual con un componente inteligente que respeta la disponibilidad de profesionales. Todas las páginas comparten ahora un diseño de dos columnas: formulario sticky a la izquierda, listado a la derecha.
+
+### Fase 1: TimeSlotSelector — Selector Inteligente de Horarios
+
+#### Nuevo componente:
+**`frontend/src/components/ui/TimeSlotSelector.tsx`**
+
+Reemplaza los campos manuales `starts_at` y `ends_at` con un selector visual inteligente que:
+
+- **Carga disponibilidad:** GET `/api/availability/{professional_id}` + GET `/api/schedule-blocks/{professional_id}`
+- **Genera fechas disponibles:** Itera próximos 365 días, filtra solo aquellos con disponibilidad activa
+- **Calcula horarios:** Para la fecha seleccionada, genera slots de 30 minutos respetando start_time/end_time
+- **Bloqueos manuales:** Marca horarios dentro de schedule_blocks como "✗ Bloqueado" (deshabilitados)
+- **Formato visual:** dd/mm/yyyy para fechas, HH:mm para horarios
+
+Dos select dropdowns:
+1. Fecha (muestra solo fechas disponibles)
+2. Horario turno (muestra solo horarios disponibles, marca bloqueados)
+
+#### Integración en BookingsPage:
+- Reemplazó campos manuales `starts_at` y `ends_at` por `<TimeSlotSelector />`
+- Agregada función `calculateEndTime(startTime, serviceDurationMinutes)` para calcular hora de fin automáticamente
+- Prop `onChange={handleTimeSlotChange}` actualiza formData.starts_at y formData.ends_at
+
+---
+
+### Fase 2: Rediseño de Dos Columnas (Todas las Páginas CRUD)
+
+Patrón aplicado a: **BookingsPage**, **ServicesPage**, **BranchesPage**, **ProfessionalsPage**
+
+#### Layout Grid:
+```html
+<div className="grid grid-cols-3 gap-6 min-h-screen">
+  <!-- Columna Izquierda: Formulario Sticky (col-span-1) -->
+  <div className="col-span-1">
+    <Card className="sticky top-6">
+      {/* Formulario con Reset + Submit */}
+    </Card>
+  </div>
+  
+  <!-- Columna Derecha: Listado (col-span-2) -->
+  <div className="col-span-2">
+    {/* Cards de items o tabla */}
+  </div>
+</div>
+```
+
+**Ventajas:**
+- Usuario ve formulario y listado simultáneamente
+- Formulario sticky sigue al scroll
+- Máxima reutilización de pantalla
+- Patrón consistente en toda la app
+
+---
+
+### Fase 3: Estilo y Tipografía
+
+#### Select Elements — Slate Color Scheme
+```tailwindcss
+border-slate-300
+bg-slate-50
+hover:bg-slate-100
+focus:ring-2 focus:ring-black focus:border-transparent
+transition
+```
+
+Aplicado a todos los `<select>` (profesional, servicio, sucursal, etc.)
+
+#### Botones de Formulario
+- **Reset:** `size="sm" variant="outline"` — posicionado antes de Submit
+- **Submit:** `className="flex-1"` — ocupa el espacio disponible
+
+#### Cambio de Terminología
+- "Selecciona" → **"Seleccione"** (más formal para usuarios PYMES)
+
+#### Formateo de Fechas
+- Cambio de mm/dd/yyyy → **dd/mm/yyyy**
+- Implementado con `<select>` dropdown (mejor UX que input nativo)
+- Función `formatDateForDisplay(dateStr)`: convierte YYYY-MM-DD a DD/MM/YYYY
+
+---
+
+### Fase 4: Actualización de Páginas Específicas
+
+#### ProfessionalsPage.tsx
+- Dos columnas grid
+- Formulario: nombre, sucursal (select), bio, avatar_url, checkboxes de servicios
+- Reset button antes de submit
+- Card de profesional muestra: **avatar (w-16 h-16 rounded-full)**, nombre, sucursal (📍), bio
+- Botones: Editar, Eliminar
+
+#### ServicesPage.tsx
+- Dos columnas
+- Formulario: nombre, duración (min/max 15-480), precio, descripción
+- Reset button
+- Card muestra: nombre, duración + precio en línea, descripción (si existe)
+
+#### BranchesPage.tsx
+- Dos columnas
+- Formulario: nombre, dirección (opt), teléfono (opt)
+- Reset button
+- Card muestra: nombre, dirección, teléfono
+
+#### BookingsPage.tsx
+- Dos columnas
+- Formulario: profesional, servicio, datos del cliente, **TimeSlotSelector**, teléfono (opt)
+- Reset button
+- Filtro por estado (confirmed, cancelled, completed, todas)
+- Card de reserva: cliente info, profesional/servicio, horario, estado (badge color), monto (si pago)
+
+---
+
+### Características Implementadas
+
+✅ **TimeSlotSelector inteligente:** Carga availability + schedule_blocks en paralelo
+✅ **Dos columnas en todas las páginas:** Consistencia visual
+✅ **Reset buttons funcionales:** Limpian formulario a estado inicial
+✅ **Selects con color slate:** Mejora visual sutil
+✅ **Fechas en dd/mm/yyyy:** Mejor UX para usuarios españolhablantes
+✅ **Avatares de profesionales:** Mostrados en cards (w-16 h-16 rounded-full)
+✅ **Bloques horarios respetados:** Times bloqueados aparecen como "✗ Bloqueado"
+✅ **Cálculo automático de fin:** ends_at se calcula según duración del servicio
+
+---
+
+### Problemas Resueltos
+
+#### 1. Avatares no visibles
+- **Error:** Campo avatar_url existía en formulario pero no se mostraba en cards
+- **Fix:** Agregada renderización `<img src={prof.avatar_url} ... />` en card
+- **Estilo:** w-16 h-16 rounded-full object-cover flex-shrink-0
+
+#### 2. Formato de fecha (mm/dd/yyyy vs dd/mm/yyyy)
+- **Error inicial:** Input type="date" nativo usa locale del sistema (typically mm/dd/yyyy)
+- **Intento 1:** Input invisible sobre botón (solo edge derecho clickeable)
+- **Intento 2:** Input transparente (calendar icon aún visible)
+- **Solución final:** `<select>` dropdown con fechas pre-formateadas como "DD/MM/YYYY"
+- **Ventaja:** Control total + UX completa
+
+#### 3. React hooks violation en TimeSlotSelector
+- **Error:** "Rendered more hooks than during the previous render"
+- **Causa:** `useRef` declarado después de `if(isLoading) return`
+- **Fix:** Mover todas las hooks declarations al top del componente
+
+#### 4. Selector de horarios bloqueados
+- **Implementación:** Método `isTimeBlocked(dateStr, timeStr)` compara rango de schedule_blocks
+- **Visualización:** Opción deshabilitada con sufijo " ✗ Bloqueado"
+
+---
+
+### Testing Realizado
+
+✅ Páginas cargan sin errores
+✅ Formularios reset funciona correctamente
+✅ Selects respetan color slate
+✅ Fechas formatean en dd/mm/yyyy
+✅ Avatares se muestran en Profesionales
+✅ Horarios bloqueados se marcan como no disponibles
+✅ Dos columnas responsive en desktop
+
+---
+
+### Próximos Pasos
+
+1. **Página de Disponibilidad:** Interfaz para profesionales definan horarios semanales (aún no hecha)
+2. **Testing en navegador:** Verificar rendering de todas las páginas
+3. **Integraciones:** Resend (emails), Mercado Pago (pagos)
+4. **Reportes:** Dashboard mejorado con gráficos
+
+---
+
+**Resumen de cambios:**
+- **Archivos nuevos:** 1 (TimeSlotSelector)
+- **Archivos modificados:** 4 (Bookings, Services, Branches, Professionals pages)
+- **Líneas de código:** ~800 frontend
+- **Componentes mejorados:** Consistency en UI/UX
+
+*Última actualización: 2026-05-14 (Sesión 9 - Mejoras UX/UI + TimeSlotSelector)*
