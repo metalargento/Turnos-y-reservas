@@ -1650,3 +1650,257 @@ Aplicado a todos los `<select>` (profesional, servicio, sucursal, etc.)
 - **Componentes mejorados:** Consistency en UI/UX
 
 *Última actualización: 2026-05-14 (Sesión 9 - Mejoras UX/UI + TimeSlotSelector)*
+
+---
+
+## Sesión 10: Design System y Tema Visual Renovado
+
+### Resumen
+
+Se implementó un **sistema de diseño cohesivo y profesional** para toda la plataforma. Se renovaron colores, tipografía y componentes con un enfoque "Modern Professional Refined" que transmite confianza y accesibilidad. La paleta utiliza Indigo como primario y Emerald como acentos, con tipografía característica (Poppins para headers, Lora para body).
+
+### Configuración de Tailwind CSS
+
+**Archivo modificado:** `frontend/tailwind.config.js`
+
+Se agregó una **paleta de colores personalizada:**
+
+#### Primario: Indigo (Profesionalismo y Confianza)
+```
+primary-50: #f0f4ff
+primary-100: #e5ebff
+primary-200: #d1ddff
+primary-300: #a8c5ff
+primary-400: #7ba3ff
+primary-500: #5a7cff (default)
+primary-600: #4557e8
+primary-700: #3b46d4
+primary-800: #2d36ad
+primary-900: #252d8a
+```
+
+#### Acentos: Emerald (Crecimiento y Éxito)
+```
+accent-50: #f0fdf4
+accent-100: #dcfce7
+accent-200: #bbf7d0
+accent-300: #86efac
+accent-400: #4ade80
+accent-500: #22c55e (default)
+accent-600: #16a34a
+accent-700: #15803d
+```
+
+#### Neutrales: Grises Sofisticados
+```
+neutral-50 → neutral-900 (backgrounds, borders, text)
+```
+
+#### Semánticos
+```
+success: #22c55e
+warning: #f59e0b
+error: #ef4444
+info: #3b82f6
+```
+
+#### Tipografía
+```
+display: Poppins (headers, botones, títulos)
+body: Lora (párrafos, descripciones)
+mono: Fira Code (código, IDs)
+```
+
+#### Sombras Personalizadas
+```
+shadow-sm: sutil (1px)
+shadow-md: estándar (4px)
+shadow-lg: elevada (10px)
+shadow-elevation: primaria con color indigo (20px)
+```
+
+#### Animaciones
+```
+fadeIn: fade in 0.3s
+slideIn: slide from left 0.3s
+fadeSlideIn: fade + slide from top 0.4s
+```
+
+---
+
+### Estilos Globales CSS
+
+**Archivo modificado:** `frontend/src/index.css`
+
+Se agregó un **sistema completo de componentes reutilizables** con clases CSS:
+
+#### Variables CSS Globales
+```css
+--color-primary: #5a7cff
+--color-accent: #22c55e
+--color-success: #22c55e
+--color-warning: #f59e0b
+--color-error: #ef4444
+--color-info: #3b82f6
+```
+
+#### Componentes Reutilizables
+```css
+.btn              /* Botones base */
+.btn-primary      /* Indigo con sombra */
+.btn-secondary    /* Gris claro */
+.btn-outline      /* Indigo outline */
+.btn-ghost        /* Sin fondo */
+.btn-danger       /* Rojo */
+.btn-success      /* Verde */
+
+.card             /* Sombra base */
+.card-elevated    /* Sombra pronunciada */
+
+.input            /* Inputs con focus ring */
+.input-error      /* Error styling */
+
+.badge            /* Badges base */
+.badge-primary    /* Indigo */
+.badge-success    /* Verde */
+.badge-warning    /* Naranja */
+.badge-error      /* Rojo */
+
+.nav-link         /* Links de navegación */
+.nav-link-active
+.nav-link-inactive
+```
+
+#### Base Styles
+- Headings (h1-h6) con Poppins bold
+- Body text con Lora regular
+- Scroll behavior smooth
+- Tipografía base 16px (body: 1rem)
+
+---
+
+### Componentes Rediseñados
+
+#### Layout Principal
+
+**`frontend/src/components/layout/Layout.tsx`** (modificado)
+- Logo con gradiente indigo sutil (fondo azul con checkmark)
+- Navbar blanca con sombra elegante
+- Botón "Cerrar sesión" con clase .btn-ghost
+- Main container con animación fade-in
+
+**`frontend/src/components/layout/Sidebar.tsx`** (modificado)
+- Gradiente oscuro profesional (neutral-900 → 800)
+- Indicador de página activa con línea verde (accent-500) en el lado izquierdo
+- Botones con transiciones suaves (duration-200)
+- Colores: indigo para items activos, gris para inactivos
+- Footer con versión de la app
+- Animaciones staggered en items del menú
+
+#### Componentes UI
+
+**`frontend/src/components/ui/Button.tsx`** (actualizado)
+- Variantes: primary, secondary, outline, danger
+- Tipografía display (Poppins) semibold
+- Sombras mejoradas (shadow-md hover:shadow-lg)
+- Transiciones todas a duration-200
+
+**`frontend/src/components/ui/Card.tsx`** (actualizado)
+- Uso de clases .card y .card-elevated
+- Prop `elevated` para controlar sombra
+- Bordes en neutral-200
+
+**`frontend/src/components/ui/Input.tsx`** (actualizado)
+- Uso de clase .input base
+- Soporte para .input-error
+- Tipografía body (Lora)
+- Label con display font medium
+
+---
+
+### Guía de Diseño
+
+**Archivo nuevo:** `frontend/src/styles/design-system.md`
+
+Documentación completa que incluye:
+- Paleta de colores completa (all variants)
+- Tipografía (familias, sizes, usage)
+- Componentes reutilizables con ejemplos
+- Spacing (gutter, section)
+- Border radius
+- Sombras
+- Animaciones
+- Casos de uso específicos
+- Notas de accesibilidad
+
+---
+
+### Documentación de Cambios
+
+**Archivo nuevo:** `DESIGN_SYSTEM_UPDATE.md`
+
+Resumen visual de la renovación que incluye:
+- ¿Qué cambió?
+- Paleta de colores (con ejemplos)
+- Tipografía
+- Componentes rediseñados
+- Características de diseño
+- Archivos modificados
+- Próximos pasos
+
+---
+
+### Características del Design System
+
+✅ **Paleta Cohesiva:** Indigo primario + Emerald acentos + Neutrales sofisticados
+✅ **Tipografía Característica:** Poppins (display) + Lora (body) crean personalidad
+✅ **Componentes Reutilizables:** Clases .btn*, .card, .input, .badge listas para usar
+✅ **Micro-interacciones:** Transiciones suaves y hover states intuitivos
+✅ **Accesibilidad:** Contraste adecuado, tamaños legibles, focus rings
+✅ **Responsive:** Todos los componentes adaptan a mobile
+✅ **Variables CSS:** Fácil mantenimiento y personalización futura
+✅ **Animaciones:** Fade-in, slide-in, fade-slide-in
+
+---
+
+### Decisiones de Diseño
+
+**Indigo vs Purple:**
+- Indigo transmite más profesionalismo que purple
+- Mejor contraste en backgrounds claros
+- Asociado con tecnología confiable
+
+**Lora para body:**
+- Serif elegante y legible en pantalla
+- Mejora la percepción de "calidad" vs sans-serif genérico
+- Poppins (sans) + Lora (serif) crean contraste visual interesante
+
+**Emerald para acentos:**
+- Verde representa crecimiento y éxito
+- Complemento natural del indigo
+- Usado para badges positivos, confirmaciones
+
+**Sidebar con gradiente:**
+- Suaviza la sensación de "barra oscura pesada"
+- Gradiente neutral (no color) mantiene profesionalismo
+- Indicador verde en activo (accent-500) es sutil pero claro
+
+---
+
+### Próximos Pasos
+
+1. **Testing en navegador:** Verificar que todas las páginas heredan correctamente los estilos
+2. **Aplicar a nuevas páginas:** Las páginas nuevas deben usar las clases del design system
+3. **Temas oscuros (opcional):** Usar CSS variables para crear dark mode en el futuro
+4. **Componentes adicionales:** Modales, tooltips, notifications siguiendo el sistema
+
+---
+
+**Resumen de cambios:**
+- **Archivos nuevos:** 2 (design-system.md, DESIGN_SYSTEM_UPDATE.md)
+- **Archivos modificados:** 8 (tailwind.config.js, index.css, Layout.tsx, Sidebar.tsx, Button.tsx, Card.tsx, Input.tsx, types)
+- **Líneas de código:** ~500 CSS + ~100 componentes
+- **Colores personalizados:** 4 paletas principales + semánticos
+- **Clases reutilizables:** 20+ componentes
+
+*Última actualización: 2026-05-15 (Sesión 10 - Design System Renovado)*

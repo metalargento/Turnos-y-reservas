@@ -15,7 +15,7 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'rounded-md font-display font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const sizeStyles = {
     sm: 'px-3 py-1 text-sm',
@@ -24,10 +24,10 @@ export function Button({
   };
 
   const variantStyles = {
-    primary: 'bg-black text-white hover:bg-gray-800 focus:ring-black',
-    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500',
-    outline: 'border-2 border-black text-black hover:bg-gray-100 focus:ring-black',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-600',
+    primary: 'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 focus:ring-primary-200 shadow-md hover:shadow-lg',
+    secondary: 'bg-neutral-200 text-neutral-900 hover:bg-neutral-300 active:bg-neutral-400 focus:ring-neutral-300',
+    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100 focus:ring-primary-200',
+    danger: 'bg-error text-white hover:bg-red-600 active:bg-red-700 focus:ring-red-200 shadow-md hover:shadow-lg',
   };
 
   return (
