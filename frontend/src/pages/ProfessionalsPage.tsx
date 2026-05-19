@@ -86,7 +86,6 @@ export function ProfessionalsPage() {
       setFormData({ display_name: '' });
       setEditingId(null);
       setSelectedServices(new Set());
-      setShowForm(false);
       loadAllData();
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar profesional');

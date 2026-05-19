@@ -1,20 +1,31 @@
 """
 Router de dashboard.
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from schemas.dashboard import DashboardStats, UpcomingBooking
 from repositories.dashboard_repo import dashboard_repo
 from repositories.business_repo import business_repo
-from middleware.auth import verify_token
+from services.auth_service import auth_service
 from utils.errors import AppError
+from utils.logger import get_logger
+
+logger = get_logger("dashboard_router")
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+security = HTTPBearer()
+
+
+async def get_current_user_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    return credentials.credentials
 
 
 @router.get("/{business_id}", response_model=DashboardStats)
 async def get_dashboard_stats(
     business_id: str,
-    token: dict = Depends(verify_token)
+    token: str = Depends(get_current_user_token)
 ):
     """
     Obtiene las estadísticas del dashboard del negocio.
@@ -26,12 +37,17 @@ async def get_dashboard_stats(
     Returns:
         Estadísticas agregadas del negocio
     """
+    # Verificar token
+    try:
+        payload = auth_service.verify_token(token)
+        owner_id = payload["sub"]
+    except AppError as e:
+        raise e
+
     # Verificar que el negocio existe y pertenece al owner
     business = business_repo.find_by_id(business_id)
     if not business:
         raise AppError("Negocio no encontrado", code="BUSINESS_NOT_FOUND", status_code=404)
-
-    owner_id = token.get("sub")
     if business["owner_id"] != owner_id:
         raise AppError(
             "No tenés acceso a este negocio",

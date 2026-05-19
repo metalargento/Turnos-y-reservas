@@ -302,35 +302,34 @@ export function BookingsPage() {
               ) : (
                 bookings.map((booking) => (
                   <Card key={booking.id}>
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-2 gap-4 mb-3">
+                    <CardContent className="p-2">
+                      <div className="grid grid-cols-2 gap-2 mb-1">
                         <div>
-                          <h3 className="font-semibold text-gray-900">{booking.client_name}</h3>
-                          <p className="text-sm text-gray-600">{booking.client_email}</p>
+                          <h3 className="font-semibold text-sm text-gray-900">{booking.client_name}</h3>
+                          <p className="text-xs text-gray-600">{booking.client_email}</p>
                           {booking.client_phone && (
-                            <p className="text-sm text-gray-600">{booking.client_phone}</p>
+                            <p className="text-xs text-gray-600">{booking.client_phone}</p>
                           )}
                         </div>
 
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Profesional</p>
-                          <p className="text-gray-900">{getProfessionalName(booking.professional_id || '')}</p>
-                          <p className="text-sm text-gray-600">{getServiceName(booking.service_id || '')}</p>
+                          <p className="text-xs font-medium text-gray-700">Profesional</p>
+                          <p className="text-sm text-gray-900">{getProfessionalName(booking.professional_id || '')}</p>
+                          <p className="text-xs text-gray-600">{getServiceName(booking.service_id || '')}</p>
                         </div>
                       </div>
 
-                      <div className="mb-3 p-3 bg-gray-50 rounded">
-                        <p className="text-sm font-medium text-gray-700">Horario</p>
-                        <p className="text-gray-900">{formatDate(booking.starts_at)}</p>
+                      <div className="mb-1 p-1 bg-gray-50 rounded text-xs">
+                        <p className="font-medium text-gray-700">{formatDate(booking.starts_at)}</p>
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <div className="flex gap-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(booking.status)}`}>
+                      <div className="flex items-center justify-between pt-1 border-t gap-1">
+                        <div className="flex gap-1">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeColor(booking.status)}`}>
                             {booking.status}
                           </span>
                           {booking.payment_required && (
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
                               💰 ${booking.payment_amount}
                             </span>
                           )}
@@ -348,7 +347,7 @@ export function BookingsPage() {
                       </div>
 
                       {booking.client_notes && (
-                        <p className="text-sm text-gray-600 mt-2 italic">Nota: {booking.client_notes}</p>
+                        <p className="text-xs text-gray-600 mt-1 italic">Nota: {booking.client_notes}</p>
                       )}
                     </CardContent>
                   </Card>

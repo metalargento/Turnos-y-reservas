@@ -28,8 +28,8 @@ export function DashboardPage() {
   const loadStats = async () => {
     if (!activeBusiness) return;
     try {
-      const data = await dashboardApi.getStats(activeBusiness.id);
-      setStats(data);
+      const response = await dashboardApi.getStats(activeBusiness.id);
+      setStats(response.data);
     } catch (err) {
       console.error('Error cargando estadísticas:', err);
     } finally {

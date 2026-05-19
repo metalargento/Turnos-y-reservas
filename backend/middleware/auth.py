@@ -2,7 +2,7 @@
 Middleware de autenticación JWT.
 Verifica tokens en requests y agrega el usuario al estado de la request.
 """
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
 from config.settings import settings
@@ -32,13 +32,19 @@ def is_public_route(path: str) -> bool:
     return False
 
 
-def verify_token(token: str) -> dict:
+def verify_token(request: Request) -> dict:
     """
-    Verifica un token JWT y devuelve el payload.
+    Verifica un token JWT del header Authorization y devuelve el payload.
 
     Raises:
-        JWTError: Si el token es inválido o expiró
+        HTTPException: Si el token no se encuentra o es inválido
     """
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else ""
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Token no encontrado")
+
     try:
         payload = jwt.decode(
             token,
@@ -48,7 +54,7 @@ def verify_token(token: str) -> dict:
         return payload
     except JWTError as e:
         logger.warning("Token inválido", extra={"error": str(e)})
-        raise
+        raise HTTPException(status_code=401, detail="Token inválido")
 
 
 async def auth_middleware(request: Request, call_next):
@@ -78,7 +84,7 @@ async def auth_middleware(request: Request, call_next):
 
     # Verificar token
     try:
-        payload = verify_token(token)
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
         request.state.user = payload
     except JWTError:
         return JSONResponse(

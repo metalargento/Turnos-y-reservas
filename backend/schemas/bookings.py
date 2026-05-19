@@ -56,7 +56,7 @@ class BookingResponse(BaseSchema):
     payment_status: str
     payment_amount: Optional[float]
     payment_id: Optional[str]
-    confirmation_token: str
+    confirmation_token: Optional[str]
     created_at: Optional[str]
     updated_at: Optional[str]
 
