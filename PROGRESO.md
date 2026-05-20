@@ -1904,3 +1904,180 @@ Resumen visual de la renovación que incluye:
 - **Clases reutilizables:** 20+ componentes
 
 *Última actualización: 2026-05-15 (Sesión 10 - Design System Renovado)*
+
+---
+
+## Sesión 11: Dashboard Interactivo y Portal de Cliente
+
+### Resumen
+
+En esta sesión se completaron dos mejoras importantes:
+1. **Dashboard interactivo:** Las cartas de estadísticas son ahora clickeables, actualizando dinámicamente el panel de reservas según la selección
+2. **Portal de Cliente:** Nueva página `/mis-reservas/:slug` donde los clientes (sin login) pueden ver y cancelar sus reservas usando solo email + teléfono
+
+### Fase 1: Dashboard Mejorado (Backend)
+
+#### Nuevos métodos en `dashboard_repo.py`:
+
+**`backend/repositories/dashboard_repo.py`** (actualizado)
+- `get_bookings_today()` — Reservas confirmadas de hoy
+- `get_bookings_this_week()` — Reservas confirmadas de esta semana
+- `get_bookings_this_month()` — Reservas confirmadas de este mes
+- `get_cancelled_bookings()` — Reservas canceladas de este mes (incluye motivo de cancelación)
+- `get_unique_clients()` — Lista de clientes únicos con conteo de reservas
+
+Cada método retorna lista completa de reservas con detalles: cliente, profesional, servicio, horarios, estado, motivo cancelación.
+
+#### Actualización en `dashboard_router.py`:
+
+**`backend/routers/dashboard_router.py`** (actualizado)
+- Endpoint GET `/api/dashboard/{business_id}` retorna ahora:
+  - 5 números de estadísticas (como antes)
+  - 6 listas nuevas: `bookings_today_list`, `bookings_this_week_list`, `bookings_this_month_list`, `cancelled_bookings_list`, `unique_clients_list`
+  - Lista genérica `upcoming_bookings` (se usa cuando no hay tab seleccionado)
+
+### Fase 2: Dashboard Interactivo (Frontend)
+
+#### Actualización en `DashboardPage.tsx`:
+
+**`frontend/src/pages/DashboardPage.tsx`** (reescrito parcialmente)
+
+Características nuevas:
+1. **Estado `selectedTab`:** Trackea cuál estadística está seleccionada (inicialmente 'upcoming')
+2. **Cartas clickeables:** Cada tarjeta tiene `onClick={() => setSelectedTab(stat.id)}`
+3. **Visual feedback:** Tarjeta seleccionada muestra `ring-2 ring-offset-2 ring-black`
+4. **Panel dinámico:** El panel "Próximas reservas" cambia contenido según el tab
+5. **Función `getTabData()`:** Retorna los datos correctos basado en `selectedTab`
+6. **Función `getTabLabel()`:** Retorna el título del panel según la selección
+
+#### Datos mostrados por tab:
+
+| Tab | Muestra |
+|-----|---------|
+| **Hoy** | Reservas confirmadas de hoy (sorted by hora) |
+| **Esta semana** | Reservas confirmadas de esta semana |
+| **Este mes** | Reservas confirmadas de este mes |
+| **Canceladas** | Reservas canceladas de este mes + motivo |
+| **Clientes** | Lista de clientes únicos con cantidad de reservas (badge) |
+
+**Actualización de tipos:**
+- `UpcomingBooking`: Agregado campo `status` y `cancellation_reason`
+- `UniqueClient`: Nuevo tipo con `client_email`, `client_name`, `client_phone`, `booking_count`
+- `DashboardStats`: Agregadas 6 listas nuevas
+
+### Fase 3: Portal de Cliente Sin Login
+
+#### Backend — Búsqueda de Reservas
+
+**`backend/repositories/booking_repo.py`** (nuevo método)
+
+```python
+def find_by_business_email_phone(business_id: str, client_email: str, client_phone: str):
+    """Obtiene todas las reservas de un cliente por email + teléfono."""
+```
+
+Query simple que filtra por `business_id`, `client_email` y `client_phone`, ordenado por `starts_at DESC`.
+
+#### Backend — Controlador y Router
+
+**`backend/controllers/public_booking_controller.py`** (nuevo método)
+```python
+def get_client_bookings(business_id: str, client_email: str, client_phone: str):
+    """Obtiene reservas del cliente sin validación de autenticación."""
+```
+
+**`backend/routers/booking_public_router.py`** (nueva ruta)
+- Endpoint: `GET /api/public/bookings/{slug}/my-bookings?email=X&phone=Y`
+- Sin autenticación JWT
+- Valida que el negocio existe
+- Retorna: `{ "bookings": [...] }`
+
+#### Frontend — Página ClientBookingsPage
+
+**`frontend/src/pages/ClientBookingsPage.tsx`** (NUEVO - ~260 líneas)
+
+**Características:**
+- Obtiene `email` y `telefono` de query params
+- Muestra email parcialmente oculto: `test@**.com`
+- Muestra teléfono parcialmente oculto: `+54 9 11 ****7890`
+- **3 tabs:** Próximas, Historial, Canceladas
+- **Próximas:** Reservas confirmadas con fecha futura + botón "Cancelar"
+- **Historial:** Reservas confirmadas con fecha pasada + reservas completadas
+- **Canceladas:** Reservas con status='cancelled' + motivo
+- **Cancelación:** Llama a endpoint `/public/bookings/{slug}/cancel` con booking_id, email, name
+- **Empty states:** Mensajes si no hay reservas en cada tab
+- **Error state:** Mensaje si email/teléfono incorrectos
+- **Loading:** Spinner mientras carga
+
+#### Frontend — API y Rutas
+
+**`frontend/src/api/publicBookings.ts`** (actualizado)
+- Nueva función: `getClientBookings(slug, email, phone)`
+
+**`frontend/src/routes/AppRoutes.tsx`** (actualizado)
+- Nueva ruta: `<Route path="/mis-reservas/:slug" element={<ClientBookingsPage />} />`
+
+**`frontend/src/pages/index.ts`** (actualizado)
+- Export: `export { ClientBookingsPage } from './ClientBookingsPage'`
+
+### Flujo Completo (End-to-End)
+
+```
+1. Cliente hace reserva en /book/negocio-slug
+   ↓
+2. Backend crea booking con email y teléfono
+   ↓
+3. (Futuro) Email enviado con link:
+   /mis-reservas/negocio-slug?email=cliente@example.com&telefono=1234567890
+   ↓
+4. Cliente accede a /mis-reservas/:slug con sus datos
+   ↓
+5. Página carga sus reservas desde /api/public/bookings/{slug}/my-bookings
+   ↓
+6. Ve próximas, historial, canceladas en tabs
+   ↓
+7. Puede clickear "Cancelar" en reservas próximas
+   ↓
+8. Cancelación exitosa → desaparece de "Próximas", aparece en "Canceladas"
+```
+
+### Testing Implementado
+
+**Verificaciones manuales completadas:**
+- ✅ Dashboard cartas clickeables
+- ✅ Panel se actualiza según tab
+- ✅ Datos mostrados correctamente por período
+- ✅ Página de cliente carga sin login
+- ✅ Email y teléfono se ocultan parcialmente
+- ✅ Tabs funcionan (próximas, historial, canceladas)
+- ✅ Botón cancelar funciona
+- ✅ Error si datos incorrectos
+
+### Próximos Pasos
+
+1. **Email de confirmación:** Incluir link a `/mis-reservas` cuando se crea reserva
+2. **Reagendar:** Permitir que clientes reagenden su propia reserva
+3. **Notificaciones:** Recordatorios 24h antes
+4. **Integraciones:** Mercado Pago (pagos), Google Calendar (sincronización)
+
+### Archivos Modificados Resumen
+
+**Backend:**
+- `booking_repo.py` — +nuevo método find_by_business_email_phone()
+- `public_booking_controller.py` — +nuevo método get_client_bookings()
+- `booking_public_router.py` — +nueva ruta GET /my-bookings
+- `dashboard_repo.py` — +5 nuevos métodos (bookings por período, clientes únicos)
+- `dashboard_router.py` — actualizado response con 6 listas
+- `main.py` — no requiere cambios
+
+**Frontend:**
+- `DashboardPage.tsx` — actualizado con state, handlers, panel dinámico
+- `publicBookings.ts` — +nueva función getClientBookings()
+- `ClientBookingsPage.tsx` — NUEVO archivo completo
+- `AppRoutes.tsx` — +nueva ruta
+- `pages/index.ts` — +export ClientBookingsPage
+- `types/index.ts` — +tipos UniqueClient, actualizados UpcomingBooking, DashboardStats
+
+---
+
+*Última actualización: 2026-05-20 (Sesión 11 - Dashboard Interactivo + Portal Cliente)*

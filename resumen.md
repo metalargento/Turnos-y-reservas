@@ -181,4 +181,49 @@ Dashboard donde el dueño del negocio gestiona su operación:
 
 ---
 
-*Última actualización: 2026-05-15 (Sesión 10 - Design System Visual Renovado)*
+## 📝 Cambios en Sesión 11
+
+### Frontend — Dashboard Interactivo
+
+**Actualización DashboardPage.tsx:**
+- Estado `selectedTab` para trackear qué estadística está seleccionada
+- Cartas de estadísticas ahora **clickeables**
+- Visual feedback: anillo negro (ring-2) alrededor de la seleccionada
+- Panel "Próximas reservas" se actualiza **dinámicamente** según el tab
+- 5 tabs: Hoy, Esta semana, Este mes, Canceladas, Clientes
+
+**Datos mostrados por tab:**
+- Hoy/Esta semana/Este mes: lista de reservas confirmadas
+- Canceladas: lista de reservas canceladas con motivo
+- Clientes: lista de clientes únicos con cantidad de reservas (badge)
+
+**Backend para Dashboard:**
+- 5 nuevos métodos en `dashboard_repo.py`: get_bookings_today(), get_bookings_this_week(), get_bookings_this_month(), get_cancelled_bookings(), get_unique_clients()
+- Actualizado endpoint GET `/api/dashboard/{business_id}` para retornar 6 listas además de números
+
+### Frontend — Portal de Cliente (Nuevo)
+
+**Nueva página ClientBookingsPage.tsx:**
+- Ruta: `/mis-reservas/:slug?email=X&telefono=Y`
+- Sin login: acceso solo con email + teléfono
+- Email parcialmente oculto: `test@**.com`
+- Teléfono parcialmente oculto: `+54 9 11 ****7890`
+- 3 tabs: Próximas, Historial, Canceladas
+- Botón "Cancelar" en reservas próximas
+- Manejo de errores si datos incorrectos
+
+**Backend para Portal:**
+- Nuevo método: `booking_repo.find_by_business_email_phone()`
+- Nuevo método: `public_booking_controller.get_client_bookings()`
+- Nueva ruta: GET `/api/public/bookings/{slug}/my-bookings?email=X&phone=Y`
+
+**Flujo:**
+1. Cliente hace reserva en `/book/negocio-slug`
+2. Email enviado con link a `/mis-reservas/negocio-slug?email=X&telefono=Y`
+3. Cliente accede sin login
+4. Ve sus reservas próximas, historial, canceladas
+5. Puede cancelar desde "Próximas"
+
+---
+
+*Última actualización: 2026-05-20 (Sesión 11 - Dashboard Interactivo + Portal Cliente)*
