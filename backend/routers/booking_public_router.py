@@ -162,6 +162,44 @@ async def create_public_booking(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
+@router.get("/{slug}/my-bookings")
+async def get_client_bookings(
+    slug: str,
+    email: str = Query(..., description="Email del cliente"),
+    phone: str = Query(..., description="Teléfono del cliente"),
+):
+    """
+    Obtener todas las reservas de un cliente (próximas + historial).
+
+    Autenticación simple: email + teléfono actúan como credenciales.
+    El cliente accede sin crear cuenta, solo con sus datos.
+
+    Query params:
+    - email: Email usado al hacer la reserva
+    - phone: Teléfono usado al hacer la reserva
+
+    Retorna lista completa de reservas ordenadas por fecha (descendente).
+    """
+    try:
+        # Obtener business por slug
+        from repositories.business_repo import business_repo
+        business = business_repo.find_by_slug(slug)
+        if not business:
+            raise AppError(
+                message="El negocio no existe",
+                code="BUSINESS_NOT_FOUND",
+                status_code=404,
+            )
+
+        return public_booking_controller.get_client_bookings(
+            business_id=business["id"],
+            client_email=email,
+            client_phone=phone,
+        )
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
 @router.post("/{slug}/cancel", response_model=PublicBookingConfirmResponse)
 async def cancel_public_booking(
     slug: str,

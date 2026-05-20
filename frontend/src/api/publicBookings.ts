@@ -8,6 +8,7 @@ import type {
   SlotsResponse,
   PublicBookingCreateRequest,
   PublicBookingConfirmResponse,
+  Booking,
 } from '../types';
 
 export const publicBookingsApi = {
@@ -88,6 +89,22 @@ export const publicBookingsApi = {
           client_email: clientEmail,
           client_name: clientName,
         },
+      },
+    ),
+
+  /**
+   * GET /public/bookings/{slug}/my-bookings
+   * Obtener todas las reservas de un cliente (email + teléfono).
+   */
+  getClientBookings: (
+    slug: string,
+    email: string,
+    phone: string,
+  ) =>
+    publicClient.get<{ bookings: Booking[] }>(
+      `/public/bookings/${slug}/my-bookings`,
+      {
+        params: { email, phone },
       },
     ),
 };

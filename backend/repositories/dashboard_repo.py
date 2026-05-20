@@ -73,6 +73,87 @@ class DashboardRepository:
         results = db.execute_query(query, (business_id, limit))
         return [dict(r) for r in results] if results else []
 
+    def get_bookings_today(self, business_id: str) -> List[Dict[str, Any]]:
+        """Obtiene reservas confirmadas de hoy."""
+        query = """
+            SELECT b.id, b.client_name, b.starts_at, b.status,
+                   p.display_name AS professional_name,
+                   s.name AS service_name
+            FROM bookings b
+            LEFT JOIN professionals p ON b.professional_id = p.id
+            LEFT JOIN services s ON b.service_id = s.id
+            WHERE b.business_id = %s
+              AND DATE(b.starts_at AT TIME ZONE 'America/Argentina/Buenos_Aires') = CURRENT_DATE
+              AND b.status IN ('confirmed', 'rescheduled')
+            ORDER BY b.starts_at ASC
+        """
+        results = db.execute_query(query, (business_id,))
+        return [dict(r) for r in results] if results else []
+
+    def get_bookings_this_week(self, business_id: str) -> List[Dict[str, Any]]:
+        """Obtiene reservas confirmadas de esta semana."""
+        query = """
+            SELECT b.id, b.client_name, b.starts_at, b.status,
+                   p.display_name AS professional_name,
+                   s.name AS service_name
+            FROM bookings b
+            LEFT JOIN professionals p ON b.professional_id = p.id
+            LEFT JOIN services s ON b.service_id = s.id
+            WHERE b.business_id = %s
+              AND b.starts_at >= DATE_TRUNC('week', NOW())
+              AND b.status IN ('confirmed', 'rescheduled')
+            ORDER BY b.starts_at ASC
+        """
+        results = db.execute_query(query, (business_id,))
+        return [dict(r) for r in results] if results else []
+
+    def get_bookings_this_month(self, business_id: str) -> List[Dict[str, Any]]:
+        """Obtiene reservas confirmadas de este mes."""
+        query = """
+            SELECT b.id, b.client_name, b.starts_at, b.status,
+                   p.display_name AS professional_name,
+                   s.name AS service_name
+            FROM bookings b
+            LEFT JOIN professionals p ON b.professional_id = p.id
+            LEFT JOIN services s ON b.service_id = s.id
+            WHERE b.business_id = %s
+              AND b.starts_at >= DATE_TRUNC('month', NOW())
+              AND b.status IN ('confirmed', 'rescheduled')
+            ORDER BY b.starts_at ASC
+        """
+        results = db.execute_query(query, (business_id,))
+        return [dict(r) for r in results] if results else []
+
+    def get_cancelled_bookings(self, business_id: str) -> List[Dict[str, Any]]:
+        """Obtiene reservas canceladas de este mes."""
+        query = """
+            SELECT b.id, b.client_name, b.starts_at, b.status, b.cancellation_reason,
+                   p.display_name AS professional_name,
+                   s.name AS service_name
+            FROM bookings b
+            LEFT JOIN professionals p ON b.professional_id = p.id
+            LEFT JOIN services s ON b.service_id = s.id
+            WHERE b.business_id = %s
+              AND b.starts_at >= DATE_TRUNC('month', NOW())
+              AND b.status = 'cancelled'
+            ORDER BY b.starts_at DESC
+        """
+        results = db.execute_query(query, (business_id,))
+        return [dict(r) for r in results] if results else []
+
+    def get_unique_clients(self, business_id: str) -> List[Dict[str, Any]]:
+        """Obtiene lista de clientes únicos con reservas este mes."""
+        query = """
+            SELECT DISTINCT b.client_email, b.client_name, b.client_phone,
+                   COUNT(*) OVER (PARTITION BY b.client_email) AS booking_count
+            FROM bookings b
+            WHERE b.business_id = %s
+              AND b.starts_at >= DATE_TRUNC('month', NOW())
+            ORDER BY booking_count DESC, b.client_name ASC
+        """
+        results = db.execute_query(query, (business_id,))
+        return [dict(r) for r in results] if results else []
+
 
 # Instancia global única
 dashboard_repo = DashboardRepository()

@@ -23,7 +23,7 @@ export function BookingsPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'upcoming' | 'history'>('upcoming');
   const [formData, setFormData] = useState<BookingCreateRequest>({
     professional_id: '',
     service_id: '',
@@ -57,7 +57,7 @@ export function BookingsPage() {
     if (businessId) {
       loadAllData();
     }
-  }, [businessId, statusFilter]);
+  }, [businessId, viewMode]);
 
   const loadBusiness = async () => {
     try {
@@ -74,13 +74,23 @@ export function BookingsPage() {
     if (!businessId) return;
     setIsLoading(true);
     try {
+      const statusFilter = viewMode === 'upcoming' ? 'confirmed' : undefined;
       const [bookingsResult, profsResult, servResult, branchResult] = await Promise.all([
-        bookingsApi.list(businessId, statusFilter || undefined),
+        bookingsApi.list(businessId, statusFilter),
         professionalsApi.list(businessId),
         servicesApi.list(businessId),
         branchesApi.list(businessId),
       ]);
-      setBookings(bookingsResult.data.bookings);
+
+      let allBookings = bookingsResult.data.bookings || [];
+      if (viewMode === 'history') {
+        allBookings = allBookings.filter(b => b.status !== 'confirmed');
+      }
+
+      const sortedBookings = allBookings.sort((a, b) =>
+        new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
+      );
+      setBookings(sortedBookings);
       setProfessionals(profsResult.data.professionals);
       setServices(servResult.data.services);
       setBranches(branchResult.data.branches);
@@ -276,20 +286,27 @@ export function BookingsPage() {
         {/* Columna Derecha: Lista de Reservas */}
         <div className="col-span-2">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrar por estado
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode('upcoming')}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  viewMode === 'upcoming'
+                    ? 'bg-black text-white'
+                    : 'border border-gray-300 text-gray-700 hover:border-black'
+                }`}
               >
-                <option value="">Todas las reservas</option>
-                <option value="confirmed">Confirmadas</option>
-                <option value="cancelled">Canceladas</option>
-                <option value="completed">Completadas</option>
-              </select>
+                Próximas
+              </button>
+              <button
+                onClick={() => setViewMode('history')}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  viewMode === 'history'
+                    ? 'bg-black text-white'
+                    : 'border border-gray-300 text-gray-700 hover:border-black'
+                }`}
+              >
+                Historial
+              </button>
             </div>
 
             <div className="space-y-3">

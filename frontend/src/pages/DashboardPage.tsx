@@ -4,9 +4,10 @@ import { Card, CardContent } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useBusinessContext } from '../contexts/BusinessContext';
 import { dashboardApi } from '../api/dashboard';
-import type { DashboardStats } from '../types';
+import type { DashboardStats, UpcomingBooking, UniqueClient } from '../types';
 
 interface StatCard {
+  id: string;
   icon: string;
   label: string;
   value: number;
@@ -19,6 +20,7 @@ export function DashboardPage() {
   const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<string>('upcoming');
 
   useEffect(() => {
     if (!activeBusiness) return;
@@ -60,6 +62,7 @@ export function DashboardPage() {
 
   const statCards: StatCard[] = [
     {
+      id: 'today',
       icon: '📅',
       label: 'Hoy',
       value: stats?.bookings_today ?? 0,
@@ -67,6 +70,7 @@ export function DashboardPage() {
       textColor: 'text-blue-600',
     },
     {
+      id: 'week',
       icon: '📊',
       label: 'Esta semana',
       value: stats?.bookings_this_week ?? 0,
@@ -74,6 +78,7 @@ export function DashboardPage() {
       textColor: 'text-green-600',
     },
     {
+      id: 'month',
       icon: '📆',
       label: 'Este mes',
       value: stats?.bookings_this_month ?? 0,
@@ -81,6 +86,7 @@ export function DashboardPage() {
       textColor: 'text-purple-600',
     },
     {
+      id: 'cancelled',
       icon: '❌',
       label: 'Canceladas',
       value: stats?.cancelled_this_month ?? 0,
@@ -88,8 +94,9 @@ export function DashboardPage() {
       textColor: 'text-red-600',
     },
     {
+      id: 'clients',
       icon: '👥',
-      label: 'Clientes únicos',
+      label: 'Clientes',
       value: stats?.unique_clients_this_month ?? 0,
       bgColor: 'bg-orange-50',
       textColor: 'text-orange-600',
@@ -106,6 +113,30 @@ export function DashboardPage() {
     return date.toLocaleDateString('es-AR', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
+  const getTabData = () => {
+    if (!stats) return { type: 'bookings', data: [] };
+
+    switch (selectedTab) {
+      case 'today':
+        return { type: 'bookings', data: stats.bookings_today_list };
+      case 'week':
+        return { type: 'bookings', data: stats.bookings_this_week_list };
+      case 'month':
+        return { type: 'bookings', data: stats.bookings_this_month_list };
+      case 'cancelled':
+        return { type: 'bookings', data: stats.cancelled_bookings_list };
+      case 'clients':
+        return { type: 'clients', data: stats.unique_clients_list };
+      default:
+        return { type: 'bookings', data: stats.upcoming_bookings };
+    }
+  };
+
+  const getTabLabel = () => {
+    const card = statCards.find(c => c.id === selectedTab);
+    return card?.label || 'Próximas reservas';
+  };
+
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -119,7 +150,11 @@ export function DashboardPage() {
       {/* Tarjetas de estadísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat) => (
-          <Card key={stat.label} className={stat.bgColor}>
+          <Card
+            key={stat.id}
+            className={`${stat.bgColor} ${selectedTab === stat.id ? 'ring-2 ring-offset-2 ring-black' : ''} cursor-pointer transition-all hover:shadow-md`}
+            onClick={() => setSelectedTab(stat.id)}
+          >
             <CardContent className="p-4 text-center">
               <div className={`text-3xl font-bold ${stat.textColor} mb-1`}>
                 {stat.value}
@@ -133,56 +168,118 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {/* Próximas reservas */}
+      {/* Panel de datos según tab seleccionado */}
       <Card>
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Próximas reservas</h2>
-            <Link
-              to="/bookings"
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Ver todas
-            </Link>
+            <h2 className="text-lg font-semibold text-gray-900">{getTabLabel()}</h2>
+            {selectedTab !== 'upcoming' && (
+              <Link
+                to={selectedTab === 'clients' ? '/professionals' : '/bookings'}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Ver todas
+              </Link>
+            )}
           </div>
 
-          {stats?.upcoming_bookings && stats.upcoming_bookings.length > 0 ? (
-            <div className="space-y-3">
-              {stats.upcoming_bookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900">
-                      {booking.client_name}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {booking.professional_name && (
-                        <span>{booking.professional_name}</span>
-                      )}
-                      {booking.professional_name && booking.service_name && <span> • </span>}
-                      {booking.service_name && (
-                        <span>{booking.service_name}</span>
-                      )}
-                    </div>
+          {(() => {
+            const { type, data } = getTabData();
+
+            if (type === 'clients') {
+              const clients = data as UniqueClient[];
+              if (clients.length > 0) {
+                return (
+                  <div className="space-y-3">
+                    {clients.map((client) => (
+                      <div
+                        key={client.client_email}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {client.client_name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {client.client_email}
+                            {client.client_phone && <span> • {client.client_phone}</span>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                            {client.booking_count} {client.booking_count === 1 ? 'reserva' : 'reservas'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-right">
-                    <div className="font-medium text-gray-900">
-                      {formatTime(booking.starts_at)}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {formatDate(booking.starts_at)}
-                    </div>
+                );
+              } else {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay clientes con reservas este mes
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              No tenés reservas próximas
-            </div>
-          )}
+                );
+              }
+            } else {
+              const bookings = data as UpcomingBooking[];
+              if (bookings.length > 0) {
+                return (
+                  <div className="space-y-3">
+                    {bookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {booking.client_name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {booking.professional_name && (
+                              <span>{booking.professional_name}</span>
+                            )}
+                            {booking.professional_name && booking.service_name && <span> • </span>}
+                            {booking.service_name && (
+                              <span>{booking.service_name}</span>
+                            )}
+                          </div>
+                          {booking.status === 'cancelled' && booking.cancellation_reason && (
+                            <div className="text-xs text-red-600 mt-1">
+                              Motivo: {booking.cancellation_reason}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900">
+                            {formatTime(booking.starts_at)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(booking.starts_at)}
+                          </div>
+                          <div className="text-xs font-medium mt-1">
+                            <span className={`px-2 py-0.5 rounded-full ${
+                              booking.status === 'confirmed' || booking.status === 'rescheduled'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {booking.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="text-center py-8 text-gray-500">
+                    No hay reservas para este período
+                  </div>
+                );
+              }
+            }
+          })()}
         </CardContent>
       </Card>
 

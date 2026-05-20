@@ -321,6 +321,15 @@ export interface UpcomingBooking {
   professional_name?: string;
   service_name?: string;
   starts_at: string;
+  status: string;
+  cancellation_reason?: string;
+}
+
+export interface UniqueClient {
+  client_email: string;
+  client_name: string;
+  client_phone?: string;
+  booking_count: number;
 }
 
 export interface DashboardStats {
@@ -330,4 +339,9 @@ export interface DashboardStats {
   cancelled_this_month: number;
   unique_clients_this_month: number;
   upcoming_bookings: UpcomingBooking[];
+  bookings_today_list: UpcomingBooking[];
+  bookings_this_week_list: UpcomingBooking[];
+  bookings_this_month_list: UpcomingBooking[];
+  cancelled_bookings_list: UpcomingBooking[];
+  unique_clients_list: UniqueClient[];
 }

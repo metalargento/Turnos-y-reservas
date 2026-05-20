@@ -500,4 +500,22 @@ class PublicBookingController:
         }
 
 
+    def get_client_bookings(
+        self,
+        business_id: str,
+        client_email: str,
+        client_phone: str,
+    ) -> Dict[str, Any]:
+        """
+        Obtiene todas las reservas de un cliente por email + teléfono.
+        Sin validación de autenticación — email + teléfono actúan como credenciales.
+        """
+        bookings = booking_repo.find_by_business_email_phone(
+            business_id=business_id,
+            client_email=client_email,
+            client_phone=client_phone,
+        )
+        return {"bookings": bookings}
+
+
 public_booking_controller = PublicBookingController()

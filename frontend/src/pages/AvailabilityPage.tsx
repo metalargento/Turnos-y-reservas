@@ -8,6 +8,20 @@ import type { Professional, Availability, ScheduleBlock, AvailabilityCreateReque
 
 const DAYS_OF_WEEK = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
+const extractErrorMessage = (error: any): string => {
+  const detail = error?.response?.data?.detail;
+
+  if (Array.isArray(detail)) {
+    return detail.map((e: any) => e.msg).join('; ') || 'Error desconocido';
+  }
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  return 'Error desconocido';
+};
+
 export function AvailabilityPage() {
   const navigate = useNavigate();
   const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
@@ -54,7 +68,7 @@ export function AvailabilityPage() {
         setSelectedProf(result.data.professionals[0]);
       }
     } catch (err: any) {
-      setError('Error al cargar profesionales');
+      setError(extractErrorMessage(err) || 'Error al cargar profesionales');
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +86,7 @@ export function AvailabilityPage() {
       setBlocks(blocksResult.data.blocks || []);
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al cargar disponibilidad');
+      setError(extractErrorMessage(err) || 'Error al cargar disponibilidad');
     } finally {
       setIsLoading(false);
     }
@@ -80,8 +94,8 @@ export function AvailabilityPage() {
 
   const handleAddTimeSlot = (dayOfWeek: number, availId?: string, startTime?: string, endTime?: string) => {
     setModalDayOfWeek(dayOfWeek);
-    setModalStartTime(startTime || '09:00');
-    setModalEndTime(endTime || '18:00');
+    setModalStartTime((startTime || '09:00').substring(0, 5));
+    setModalEndTime((endTime || '18:00').substring(0, 5));
     setModalEditingId(availId || null);
     setModalError('');
     setShowTimeModal(true);
@@ -111,7 +125,7 @@ export function AvailabilityPage() {
       setError('');
       setModalEditingId(null);
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al guardar horario');
+      setModalError(extractErrorMessage(err) || 'Error al guardar horario');
     }
   };
 
@@ -122,7 +136,7 @@ export function AvailabilityPage() {
       await loadProfData();
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al eliminar horario');
+      setError(extractErrorMessage(err) || 'Error al eliminar horario');
     }
   };
 
@@ -149,7 +163,7 @@ export function AvailabilityPage() {
       await loadProfData();
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al crear bloqueo');
+      setError(extractErrorMessage(err) || 'Error al crear bloqueo');
     }
   };
 
@@ -160,7 +174,7 @@ export function AvailabilityPage() {
       await loadProfData();
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Error al eliminar bloqueo');
+      setError(extractErrorMessage(err) || 'Error al eliminar bloqueo');
     }
   };
 
