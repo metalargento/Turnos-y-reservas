@@ -2081,3 +2081,129 @@ def get_client_bookings(business_id: str, client_email: str, client_phone: str):
 ---
 
 *Última actualización: 2026-05-20 (Sesión 11 - Dashboard Interactivo + Portal Cliente)*
+
+---
+
+## Sesión 12: Migración a Supabase + Full Stack Ready
+
+### Resumen
+
+Se completó la migración de la base de datos local a Supabase. El backend ahora está conectado a la BD en la nube (Pooling), y el sistema de migraciones fue ajustado para funcionar correctamente con las restricciones de schema en Supabase. Se verificó que el widget público de reservas funciona end-to-end con datos en Supabase.
+
+### Cambios Realizados
+
+#### 1. **Base de Datos: Local → Supabase**
+
+**Antes:**
+- BD local: PostgreSQL en `localhost:5433` (Docker)
+- Datos solo en desarrollo
+
+**Después:**
+- BD remota: Supabase en `aws-1-us-east-1.pooler.supabase.com:6543`
+- Pooling Connection (Transaction mode, máxima estabilidad)
+- Datos sincronizados en la nube, listo para producción
+
+**Pasos realizados:**
+1. Creado proyecto en Supabase
+2. Obtenida connection string de Pooling (port 6543)
+3. Actualizado `.env` con `DATABASE_URL` de Supabase
+4. Migraciones SQL ejecutadas manualmente en Supabase (via SQL Editor)
+5. Datos de prueba insertados (usuario, negocio, rama, profesional, servicio)
+
+#### 2. **Corrección de Migraciones para Supabase**
+
+**Archivo:** `backend/migrations/run_migrations.py`
+
+**Problema:** 
+```
+ERROR: no schema has been selected to create in
+```
+
+Ocurría porque el Pooling de Supabase requiere especificar explícitamente el schema.
+
+**Solución:**
+```python
+# Línea agregada en run_migrations()
+cursor.execute("SET search_path TO public;")
+```
+
+Esto especifica al motor que use el schema `public` (default en Supabase).
+
+#### 3. **Datos de Prueba Creados en Supabase**
+
+```sql
+-- Usuario (dueño)
+INSERT INTO users (email, password_hash, role, full_name)
+VALUES ('owner@consultorio.com', '...', 'owner', 'Dr. Chapatin')
+
+-- Negocio
+INSERT INTO businesses (owner_id, name, slug, plan_status)
+VALUES (..., 'Consultorio Chapatin', 'consultorio-chapatin', 'active')
+
+-- Rama
+INSERT INTO branches (business_id, name, address, phone)
+VALUES (..., 'Sucursal Centro', 'Calle Principal 123', '+54 9 11 1234567')
+
+-- Profesional
+INSERT INTO professionals (user_id, business_id, branch_id, display_name)
+VALUES (NULL, ..., ..., 'Dra. María García')
+
+-- Servicio
+INSERT INTO services (business_id, name, duration_minutes, price)
+VALUES (..., 'Consulta General', 30, 50.00)
+
+-- Disponibilidad (Lunes a Viernes, 09:00-17:00)
+INSERT INTO availability (professional_id, day_of_week, start_time, end_time)
+VALUES (..., 1-5, '09:00', '17:00')
+```
+
+#### 4. **Verificación End-to-End**
+
+✅ **Widget público funciona:**
+- URL: `http://localhost:5173/book/consultorio-chapatin`
+- Carga datos desde Supabase
+- Permite hacer reserva sin autenticación
+
+✅ **Reserva de prueba exitosa:**
+- Cliente: Juan Pérez
+- Email: test@example.com
+- Teléfono: 1234567890
+- Profesional: Dra. María García
+- Servicio: Consulta General
+- Fecha/Hora: Reserva creada
+
+✅ **Portal de cliente funciona:**
+- URL: `http://localhost:5173/mis-reservas/consultorio-chapatin?email=test@example.com&telefono=1234567890`
+- Muestra historial de reservas
+- Permite cancelar
+
+### Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `.env` | Actualizado `DATABASE_URL` a Supabase Pooling |
+| `backend/migrations/run_migrations.py` | Agregado `SET search_path TO public;` |
+| `supabase_migrations.sql` | NUEVO: SQL combinado de todas las migraciones |
+
+### Stack Verificado
+
+- ✅ **Backend:** FastAPI + Python 3.11
+- ✅ **Base de datos:** PostgreSQL en Supabase (Pooling)
+- ✅ **Frontend:** React + Vite + Tailwind
+- ✅ **Widget público:** Funcional end-to-end
+- ✅ **Portal cliente:** Funcional (ver/cancelar reservas)
+- ✅ **Migraciones:** Automáticas en startup
+
+### Próximos Pasos
+
+1. **Email de confirmación:** Incluir link a `/mis-reservas` en el email de confirmación
+2. **Despliegue:**
+   - Backend: AWS (Lambda/EC2) o Railway
+   - Frontend: Vercel
+3. **Integraciones:** Resend (emails), Mercado Pago (pagos), Google Calendar
+4. **Reagendar:** Permitir que clientes cambien fecha/hora de sus reservas
+5. **Notificaciones:** Recordatorios 24h antes de la cita
+
+---
+
+*Última actualización: 2026-05-21 (Sesión 12 - Migración a Supabase + Full Stack)*

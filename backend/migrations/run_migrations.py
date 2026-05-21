@@ -34,6 +34,9 @@ def run_migrations():
         conn.autocommit = True
         cursor = conn.cursor()
 
+        # Especificar schema (necesario para Supabase Pooler)
+        cursor.execute("SET search_path TO public;")
+
         # Crear tabla de control de migraciones
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS schema_migrations (
