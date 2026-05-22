@@ -24,6 +24,7 @@ export function BookingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'upcoming' | 'history'>('upcoming');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState<BookingCreateRequest>({
     professional_id: '',
     service_id: '',
@@ -159,6 +160,20 @@ export function BookingsPage() {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const filteredBookings = bookings.filter((booking) => {
+    const query = searchQuery.toLowerCase();
+    const professionalName = getProfessionalName(booking.professional_id || '').toLowerCase();
+    const serviceName = getServiceName(booking.service_id || '').toLowerCase();
+
+    return (
+      booking.client_name.toLowerCase().includes(query) ||
+      booking.client_email.toLowerCase().includes(query) ||
+      (booking.client_phone?.toLowerCase().includes(query) ?? false) ||
+      professionalName.includes(query) ||
+      serviceName.includes(query)
+    );
+  });
 
   if (isLoading) {
     return <div className="text-center py-8">Cargando...</div>;
@@ -309,6 +324,13 @@ export function BookingsPage() {
               </button>
             </div>
 
+            <Input
+              placeholder="Buscar por cliente, email, teléfono, profesional o servicio..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+
             <div className="space-y-3">
               {bookings.length === 0 ? (
                 <Card>
@@ -316,8 +338,14 @@ export function BookingsPage() {
                     No hay reservas. Crea tu primera reserva.
                   </CardContent>
                 </Card>
+              ) : filteredBookings.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center text-gray-500 py-8">
+                    No se encontraron reservas con "{searchQuery}".
+                  </CardContent>
+                </Card>
               ) : (
-                bookings.map((booking) => (
+                filteredBookings.map((booking) => (
                   <Card key={booking.id}>
                     <CardContent className="p-2">
                       <div className="grid grid-cols-2 gap-2 mb-1">

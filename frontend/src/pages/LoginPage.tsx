@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
@@ -13,12 +13,36 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberEmail, setRememberEmail] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<LoginRequest>();
+
+  const emailValue = watch('email');
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const wasEmailRemembered = localStorage.getItem('rememberEmail') === 'true';
+    if (savedEmail && wasEmailRemembered) {
+      setValue('email', savedEmail);
+      setRememberEmail(true);
+    }
+  }, [setValue]);
+
+  useEffect(() => {
+    if (rememberEmail && emailValue) {
+      localStorage.setItem('rememberedEmail', emailValue);
+      localStorage.setItem('rememberEmail', 'true');
+    } else if (!rememberEmail) {
+      localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('rememberEmail');
+    }
+  }, [rememberEmail, emailValue]);
 
   const onSubmit = async (data: LoginRequest) => {
     setError('');
@@ -46,19 +70,30 @@ export function LoginPage() {
           {error && <Alert variant="error">{error}</Alert>}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="tu@email.com"
-              {...register('email', {
-                required: 'El email es requerido',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Email inválido',
-                },
-              })}
-              error={errors.email?.message}
-            />
+            <div>
+              <Input
+                label="Email"
+                type="email"
+                placeholder="tu@email.com"
+                {...register('email', {
+                  required: 'El email es requerido',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Email inválido',
+                  },
+                })}
+                error={errors.email?.message}
+              />
+              <label className="flex items-center gap-2 mt-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberEmail}
+                  onChange={(e) => setRememberEmail(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                />
+                <span>Recordar este email</span>
+              </label>
+            </div>
 
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-display font-medium text-neutral-700">
