@@ -181,7 +181,7 @@ export function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Reservas</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
@@ -190,10 +190,10 @@ export function BookingsPage() {
         <div className="col-span-1">
           <Card className="sticky top-6">
             <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">Nueva reserva</h3>
+              <h3 className="font-semibold text-lg dark:text-neutral-100">Nueva reserva</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                     Profesional *
                   </label>
                   <select
@@ -201,7 +201,7 @@ export function BookingsPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, professional_id: e.target.value })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent dark:text-neutral-100 transition"
                     required
                   >
                     <option value="">Seleccione profesional</option>
@@ -214,7 +214,7 @@ export function BookingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                     Servicio *
                   </label>
                   <select
@@ -230,7 +230,7 @@ export function BookingsPage() {
                         }
                       }
                     }}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent dark:text-neutral-100 transition"
                     required
                   >
                     <option value="">Seleccione servicio</option>

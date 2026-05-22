@@ -17,7 +17,7 @@ export function Card({ children, className = '', elevated = false, ...props }: C
 
 export function CardHeader({ children, className = '' }: CardProps) {
   return (
-    <div className={`px-6 py-4 border-b border-neutral-200 ${className}`}>
+    <div className={`px-6 py-4 border-b border-neutral-200 dark:border-neutral-700 ${className}`}>
       {children}
     </div>
   );

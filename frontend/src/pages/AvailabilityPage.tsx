@@ -219,10 +219,10 @@ export function AvailabilityPage() {
   if (professionals.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Disponibilidad</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Disponibilidad</h1>
         <Card>
           <CardContent className="text-center py-12">
-            <p className="text-gray-600 mb-4">No hay profesionales configurados</p>
+            <p className="text-gray-600 dark:text-neutral-400 mb-4">No hay profesionales configurados</p>
             <Button onClick={() => navigate('/professionals')}>
               Agregar profesionales
             </Button>
@@ -234,7 +234,7 @@ export function AvailabilityPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Disponibilidad</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Disponibilidad</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
@@ -261,30 +261,30 @@ export function AvailabilityPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="pt-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Horario semanal</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Horario semanal</h2>
                 <div className="space-y-3">
                   {DAYS_OF_WEEK.map((dayName, idx) => {
                     const availList = getAvailabilityForDay(idx);
                     const isOpen = availList.length > 0;
 
                     return (
-                      <div key={idx} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg">
+                      <div key={idx} className="flex items-start gap-3 p-3 border border-gray-200 dark:border-neutral-600 rounded-lg">
                         {/* Indicador de estado */}
                         <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${
                           isOpen ? 'bg-green-500' : 'bg-gray-300'
                         }`}></div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 text-sm">{dayName}</h3>
+                          <h3 className="font-medium text-gray-900 dark:text-neutral-100 text-sm">{dayName}</h3>
                           {availList.length > 0 ? (
                             <div className="space-y-2 mt-2">
                               {availList.map(avail => (
                                 <div
                                   key={avail.id}
-                                  className="flex items-center justify-between bg-gray-50 p-2 rounded text-xs hover:bg-gray-100 cursor-pointer transition"
+                                  className="flex items-center justify-between bg-gray-50 dark:bg-neutral-700 p-2 rounded text-xs hover:bg-gray-100 dark:hover:bg-neutral-600 cursor-pointer transition"
                                   onClick={() => handleAddTimeSlot(idx, avail.id, avail.start_time, avail.end_time)}
                                 >
-                                  <span className="text-gray-700">{avail.start_time} — {avail.end_time}</span>
+                                  <span className="text-gray-700 dark:text-neutral-100">{avail.start_time.substring(0, 5)} hs — {avail.end_time.substring(0, 5)} hs</span>
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -298,7 +298,7 @@ export function AvailabilityPage() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-xs text-gray-500 mt-1">Cerrado</p>
+                            <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">Cerrado</p>
                           )}
                         </div>
 
@@ -323,31 +323,33 @@ export function AvailabilityPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">Bloqueos</h2>
-                  <button
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Bloqueos</h2>
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => setShowBlockForm(!showBlockForm)}
-                    className="text-sm text-gray-600 hover:text-black"
+                    className="text-xs"
                   >
                     {showBlockForm ? '✕' : '+'}
-                  </button>
+                  </Button>
                 </div>
 
                 {showBlockForm && (
-                  <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-3">
+                  <div className="mb-4 p-3 bg-gray-50 dark:bg-neutral-700 rounded-lg space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                      <label className="block text-xs font-medium text-gray-700 dark:text-neutral-300 mb-1">
                         Fecha
                       </label>
                       <input
                         type="date"
                         value={blockDate}
                         onChange={(e) => setBlockDate(e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                        className="w-full px-2 py-1.5 border border-gray-300 dark:border-neutral-600 rounded text-xs dark:bg-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                       />
                     </div>
 
                     <div>
-                      <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                      <label className="flex items-center gap-2 text-xs font-medium text-gray-700 dark:text-neutral-300">
                         <input
                           type="checkbox"
                           checked={blockAllDay}
@@ -361,32 +363,32 @@ export function AvailabilityPage() {
                     {!blockAllDay && (
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-neutral-300 mb-1">
                             Desde
                           </label>
                           <input
                             type="time"
                             value={blockFromTime}
                             onChange={(e) => setBlockFromTime(e.target.value)}
-                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-neutral-600 rounded text-xs dark:bg-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                          <label className="block text-xs font-medium text-gray-700 dark:text-neutral-300 mb-1">
                             Hasta
                           </label>
                           <input
                             type="time"
                             value={blockUntilTime}
                             onChange={(e) => setBlockUntilTime(e.target.value)}
-                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                            className="w-full px-2 py-1.5 border border-gray-300 dark:border-neutral-600 rounded text-xs dark:bg-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                           />
                         </div>
                       </div>
                     )}
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
+                      <label className="block text-xs font-medium text-gray-700 dark:text-neutral-300 mb-1">
                         Motivo
                       </label>
                       <input
@@ -394,7 +396,7 @@ export function AvailabilityPage() {
                         placeholder="Vacaciones, feriado..."
                         value={blockReason}
                         onChange={(e) => setBlockReason(e.target.value)}
-                        className="w-full px-2 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-black"
+                        className="w-full px-2 py-1.5 border border-gray-300 dark:border-neutral-600 rounded text-xs dark:bg-neutral-800 dark:text-neutral-100 placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                       />
                     </div>
 
@@ -416,23 +418,23 @@ export function AvailabilityPage() {
 
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {blocks.length === 0 ? (
-                    <p className="text-xs text-gray-500 text-center py-4">Sin bloqueos</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400 text-center py-4">Sin bloqueos</p>
                   ) : (
                     blocks.map(block => (
-                      <div key={block.id} className="p-2 border border-gray-200 rounded-lg">
+                      <div key={block.id} className="p-2 border border-gray-200 dark:border-neutral-600 rounded-lg">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-gray-900">
+                            <p className="text-xs font-medium text-gray-900 dark:text-neutral-100">
                               {formatDate(block.blocked_from)}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-gray-600 dark:text-neutral-400">
                               {isBlockAllDay(block.blocked_from, block.blocked_until)
                                 ? 'Todo el día'
-                                : `${formatBlockTime(block.blocked_from)} - ${formatBlockTime(block.blocked_until)}`
+                                : `${formatBlockTime(block.blocked_from)} hs - ${formatBlockTime(block.blocked_until)} hs`
                               }
                             </p>
                             {block.reason && (
-                              <p className="text-xs text-gray-500 mt-1">{block.reason}</p>
+                              <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">{block.reason}</p>
                             )}
                           </div>
                           <button
@@ -455,14 +457,14 @@ export function AvailabilityPage() {
       {/* Modal para crear/editar horario */}
       {showTimeModal && modalDayOfWeek !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">
               {modalEditingId ? 'Editar' : 'Nuevo'} horario para {DAYS_OF_WEEK[modalDayOfWeek]}
             </h3>
             {modalError && <Alert variant="error">{modalError}</Alert>}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                   Desde
                 </label>
                 <input
@@ -472,11 +474,11 @@ export function AvailabilityPage() {
                     setModalStartTime(e.target.value);
                     setModalError('');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm dark:bg-neutral-700 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                   Hasta
                 </label>
                 <input
@@ -486,7 +488,7 @@ export function AvailabilityPage() {
                     setModalEndTime(e.target.value);
                     setModalError('');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm dark:bg-neutral-700 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white"
                 />
               </div>
               <div className="flex gap-2">

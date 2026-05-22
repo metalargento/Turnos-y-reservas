@@ -109,19 +109,19 @@
   }
 
   .card {
-    @apply bg-white rounded-lg border border-neutral-200 shadow-base hover:shadow-md transition-shadow duration-300;
+    @apply bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-base hover:shadow-md transition-shadow duration-300;
   }
 
   .card-elevated {
-    @apply bg-white rounded-lg shadow-elevation;
+    @apply bg-white dark:bg-neutral-800 rounded-lg shadow-elevation;
   }
 
   .input {
-    @apply w-full px-3 py-2 border border-neutral-300 rounded-md font-body text-base text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200;
+    @apply w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md font-body text-base text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-primary-500 dark:focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900 transition-all duration-200;
   }
 
   .input-error {
-    @apply border-error focus:border-error focus:ring-red-100;
+    @apply border-error dark:border-error focus:border-error dark:focus:border-error focus:ring-red-100 dark:focus:ring-red-900;
   }
 
   .badge {
@@ -207,5 +207,23 @@
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+  }
+
+  /* Estilos para inputs de fecha y hora */
+  input[type="date"],
+  input[type="time"] {
+    @apply accent-primary-600;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(1) brightness(1.1);
+    }
   }
 }
