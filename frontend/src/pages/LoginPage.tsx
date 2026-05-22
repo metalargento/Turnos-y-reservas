@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Card, CardContent, Alert } from '../components/ui';
 import { authApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +12,7 @@ export function LoginPage() {
   const { login } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -58,19 +60,37 @@ export function LoginPage() {
               error={errors.email?.message}
             />
 
-            <Input
-              label="Contraseña"
-              type="password"
-              placeholder="••••••••"
-              {...register('password', {
-                required: 'La contraseña es requerida',
-                minLength: {
-                  value: 6,
-                  message: 'Mínimo 6 caracteres',
-                },
-              })}
-              error={errors.password?.message}
-            />
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-display font-medium text-neutral-700">
+                Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={`input ${errors.password?.message ? 'input-error' : ''} pr-10`}
+                  {...register('password', {
+                    required: 'La contraseña es requerida',
+                    minLength: {
+                      value: 6,
+                      message: 'Mínimo 6 caracteres',
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password?.message && (
+                <p className="text-sm text-error font-display font-medium">{errors.password.message}</p>
+              )}
+            </div>
 
             <Button type="submit" className="w-full" isLoading={isLoading}>
               Iniciar sesión

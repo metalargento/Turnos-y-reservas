@@ -287,13 +287,15 @@ export function OnboardingPage() {
                   />
                   <div className="grid grid-cols-2 gap-3">
                     <Input
+                      label="Duración (min)"
                       type="number"
-                      placeholder="Duración (min)"
+                      placeholder="30"
                       {...step4Form.register(`services.${index}.duration_minutes` as const, { valueAsNumber: true, required: 'Requerido', min: 15 })}
                     />
                     <Input
+                      label="Precio"
                       type="number"
-                      placeholder="Precio"
+                      placeholder="0"
                       step="0.01"
                       {...step4Form.register(`services.${index}.price` as const, { valueAsNumber: true })}
                     />

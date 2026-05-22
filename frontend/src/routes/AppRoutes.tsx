@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { BusinessProvider } from '../contexts/BusinessContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { ProtectedRoute } from './ProtectedRoute';
 import { Layout } from '../components/layout';
 import {
@@ -23,8 +24,9 @@ import {
 
 export function AppRoutes() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -55,7 +57,8 @@ export function AppRoutes() {
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
