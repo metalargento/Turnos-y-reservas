@@ -68,7 +68,7 @@ export function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Servicios</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Servicios</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
@@ -77,7 +77,7 @@ export function ServicesPage() {
         <div className="col-span-1">
           <Card className="sticky top-6">
             <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">
+              <h3 className="font-semibold text-lg text-neutral-900 dark:text-neutral-100">
                 {editingId ? 'Editar servicio' : 'Nuevo servicio'}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,7 +150,7 @@ export function ServicesPage() {
           <div className="space-y-3">
             {services.length === 0 ? (
               <Card>
-                <CardContent className="text-center text-gray-500 py-8">
+                <CardContent className="text-center text-gray-500 dark:text-neutral-400 py-8">
                   No hay servicios aún. Crea tu primer servicio.
                 </CardContent>
               </Card>
@@ -160,14 +160,14 @@ export function ServicesPage() {
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-neutral-100">
                           {service.name}
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">
                           {service.duration_minutes} min · ${service.price || 'Sin precio'}
                         </p>
                         {service.description && (
-                          <p className="text-sm text-gray-500 mt-2">
+                          <p className="text-sm text-gray-500 dark:text-neutral-400 mt-2">
                             {service.description}
                           </p>
                         )}
