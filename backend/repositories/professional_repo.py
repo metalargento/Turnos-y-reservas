@@ -50,11 +50,13 @@ class ProfessionalRepository:
             query,
             (business_id, display_name, branch_id, user_id, avatar_url, bio),
         )
+        professional = dict(result)
+        professional['services'] = []
         logger.info(
             "Profesional creado",
-            extra={"professional_id": result["id"], "business_id": business_id},
+            extra={"professional_id": professional["id"], "business_id": business_id},
         )
-        return dict(result)
+        return professional
 
     def find_by_id(self, professional_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -67,9 +69,21 @@ class ProfessionalRepository:
             Diccionario con datos del profesional o None si no existe
         """
         query = """
-            SELECT id, business_id, display_name, branch_id, user_id, avatar_url, bio, is_active, created_at
-            FROM professionals
-            WHERE id = %s
+            SELECT
+                p.id,
+                p.business_id,
+                p.display_name,
+                p.branch_id,
+                p.user_id,
+                p.avatar_url,
+                p.bio,
+                p.is_active,
+                p.created_at,
+                COALESCE(json_agg(ps.service_id) FILTER (WHERE ps.service_id IS NOT NULL), '[]'::json) as services
+            FROM professionals p
+            LEFT JOIN professional_services ps ON p.id = ps.professional_id
+            WHERE p.id = %s
+            GROUP BY p.id, p.business_id, p.display_name, p.branch_id, p.user_id, p.avatar_url, p.bio, p.is_active, p.created_at
         """
         result = db.execute_one(query, (professional_id,))
         return dict(result) if result else None
@@ -85,10 +99,22 @@ class ProfessionalRepository:
             Lista de diccionarios con datos de los profesionales
         """
         query = """
-            SELECT id, business_id, display_name, branch_id, user_id, avatar_url, bio, is_active, created_at
-            FROM professionals
-            WHERE business_id = %s AND is_active = TRUE
-            ORDER BY display_name ASC
+            SELECT
+                p.id,
+                p.business_id,
+                p.display_name,
+                p.branch_id,
+                p.user_id,
+                p.avatar_url,
+                p.bio,
+                p.is_active,
+                p.created_at,
+                COALESCE(json_agg(ps.service_id) FILTER (WHERE ps.service_id IS NOT NULL), '[]'::json) as services
+            FROM professionals p
+            LEFT JOIN professional_services ps ON p.id = ps.professional_id
+            WHERE p.business_id = %s AND p.is_active = TRUE
+            GROUP BY p.id, p.business_id, p.display_name, p.branch_id, p.user_id, p.avatar_url, p.bio, p.is_active, p.created_at
+            ORDER BY p.display_name ASC
         """
         results = db.execute_query(query, (business_id,))
         return [dict(r) for r in results] if results else []
@@ -141,7 +167,12 @@ class ProfessionalRepository:
             RETURNING id, display_name, branch_id, avatar_url, bio, updated_at
         """
         result = db.execute_one(query, tuple(values))
-        return dict(result) if result else None
+        if result:
+            updated = dict(result)
+            services = self.get_services(professional_id)
+            updated['services'] = [s['id'] for s in services]
+            return updated
+        return None
 
     def set_active(self, professional_id: str, is_active: bool) -> bool:
         """

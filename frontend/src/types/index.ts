@@ -144,6 +144,7 @@ export interface Professional {
   avatar_url?: string;
   bio?: string;
   is_active: boolean;
+  services?: string[];
 }
 
 export interface ProfessionalCreateRequest {

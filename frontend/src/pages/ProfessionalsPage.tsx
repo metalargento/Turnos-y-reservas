@@ -58,7 +58,7 @@ export function ProfessionalsPage() {
       bio: prof.bio,
     });
     setEditingId(prof.id);
-    setSelectedServices(new Set());
+    setSelectedServices(new Set(prof.services || []));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -119,7 +119,7 @@ export function ProfessionalsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Profesionales</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Profesionales</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
@@ -128,7 +128,7 @@ export function ProfessionalsPage() {
         <div className="col-span-1">
           <Card className="sticky top-6">
             <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">
+              <h3 className="font-semibold text-lg text-neutral-900 dark:text-neutral-100">
                 {editingId ? 'Editar profesional' : 'Nuevo profesional'}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,7 +144,7 @@ export function ProfessionalsPage() {
                   required
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">
                     Sucursal (opcional)
                   </label>
                   <select
@@ -155,7 +155,7 @@ export function ProfessionalsPage() {
                         branch_id: e.target.value || undefined,
                       })
                     }
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 focus:ring-2 focus:ring-black focus:border-transparent transition"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-slate-50 dark:bg-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-700 focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent dark:text-neutral-100 transition"
                   >
                     <option value="">-- Sin sucursal --</option>
                     {branches.map((b) => (
@@ -182,22 +182,22 @@ export function ProfessionalsPage() {
 
                 {services.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">
                       Servicios que realiza
                     </label>
-                    <div className="space-y-2 bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
+                    <div className="space-y-2 bg-gray-50 dark:bg-neutral-700 p-3 rounded-lg max-h-48 overflow-y-auto">
                       {services.map((service) => (
-                        <div key={service.id} className="flex items-center">
+                        <div key={service.id} className="flex items-center gap-2">
                           <input
                             type="checkbox"
                             id={service.id}
                             checked={selectedServices.has(service.id)}
                             onChange={() => toggleService(service.id)}
-                            className="w-4 h-4"
+                            className="w-4 h-4 flex-shrink-0 rounded"
                           />
                           <label
                             htmlFor={service.id}
-                            className="ml-2 text-sm text-gray-700"
+                            className="text-sm text-gray-700 dark:text-neutral-200"
                           >
                             {service.name} ({service.duration_minutes} min)
                           </label>
@@ -234,7 +234,7 @@ export function ProfessionalsPage() {
           <div className="space-y-3">
             {professionals.length === 0 ? (
               <Card>
-                <CardContent className="text-center text-gray-500 py-8">
+                <CardContent className="text-center text-gray-500 dark:text-neutral-400 py-8">
                   No hay profesionales. Agrega tu primer profesional.
                 </CardContent>
               </Card>
@@ -252,18 +252,18 @@ export function ProfessionalsPage() {
                           />
                         )}
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-gray-900 dark:text-neutral-100">
                             {prof.display_name}
                           </h3>
                           {prof.branch_id && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-neutral-400">
                               📍{' '}
                               {branches.find((b) => b.id === prof.branch_id)?.name ||
                                 'Sucursal desconocida'}
                             </p>
                           )}
                           {prof.bio && (
-                            <p className="text-sm text-gray-600 mt-1">{prof.bio}</p>
+                            <p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">{prof.bio}</p>
                           )}
                         </div>
                       </div>

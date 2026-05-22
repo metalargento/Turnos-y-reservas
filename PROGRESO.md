@@ -2207,3 +2207,170 @@ VALUES (..., 1-5, '09:00', '17:00')
 ---
 
 *Última actualización: 2026-05-21 (Sesión 12 - Migración a Supabase + Full Stack)*
+
+---
+
+## Sesión 13: Dark Mode Refinement + Profesionales Services Persistence
+
+### Resumen
+
+Completada la refinación del dark mode en toda la interfaz con colores más claros y contrastados. Se resolvió un bug crítico donde los servicios asignados a profesionales no se guardaban correctamente — ahora el backend devuelve los service_ids cuando se obtiene un profesional.
+
+### Frontend — Dark Mode Improvements
+
+#### Input Component (Input.tsx)
+
+**Label visibility enhancement:**
+- Cambio: `dark:text-neutral-300` → `dark:text-neutral-200`
+- Mejora de contraste en dark mode
+
+#### Services Page (ServicesPage.tsx)
+
+**Colores agregados para consistencia:**
+- Título principal "Servicios": `dark:text-neutral-100`
+- Título del formulario "Nuevo servicio": `dark:text-neutral-100`
+- Mensaje vacío "No hay servicios": `dark:text-neutral-400`
+- Nombre de servicios listados: `dark:text-neutral-100`
+- Duración y precio: `dark:text-neutral-400`
+
+#### Professionals Page (ProfessionalsPage.tsx)
+
+**Mejoras de UI y Dark Mode:**
+
+1. **Colores de texto:**
+   - Título "Profesionales": `dark:text-neutral-100`
+   - Titulo formulario: `dark:text-neutral-100`
+   - Nombre de profesional (listado): `dark:text-neutral-100`
+   - Sucursal y bio: `dark:text-neutral-400`
+
+2. **Select de Sucursal:**
+   - Agregado dark mode completo:
+   - `dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:focus:ring-white dark:text-neutral-100`
+
+3. **Sección "Servicios que realiza":**
+   - Label: `dark:text-neutral-200`
+   - Contenedor: `dark:bg-neutral-700` (en lugar de bg-gray-50)
+   - Checkboxes:
+     - Label: `dark:text-neutral-200`
+     - **Tamaño normalizado:** Agregado `flex-shrink-0` para evitar que se expanda
+     - **Spacing mejorado:** Cambio de `ml-2` a `gap-2` para mejor alineación
+     - Consistencia: Agregado `.rounded` en input type checkbox
+
+#### TimeSlotSelector Component (TimeSlotSelector.tsx)
+
+**Dark mode en selects de Fecha y Horario:**
+- Ambos selects: `dark:border-neutral-600 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:focus:ring-white dark:text-neutral-100`
+- Labels: `dark:text-neutral-200`
+- Texto de carga: `dark:text-neutral-400`
+- Mensaje de error: `dark:text-red-400`
+
+### Backend — Professional Services Persistence
+
+#### El Problema
+Cuando editabas un profesional que ya tenía servicios asignados, los checkboxes siempre aparecían destildados (vacíos). Los servicios no se estaban mostrando como guardados.
+
+**Causa raíz:** 
+El backend no devolvía los service_ids cuando se obtenía un profesional. El frontend no tenía forma de cargar los servicios en el formulario de edición.
+
+#### La Solución
+
+**1. Actualizar tipo TypeScript (types/index.ts):**
+```typescript
+export interface Professional {
+  id: string;
+  business_id: string;
+  display_name: string;
+  branch_id?: string;
+  avatar_url?: string;
+  bio?: string;
+  is_active: boolean;
+  services?: string[];  // ← NEW: array de service_ids
+}
+```
+
+**2. Actualizar backend queries (professional_repo.py):**
+
+**Método `find_by_id()`:**
+```sql
+SELECT
+  p.id, p.business_id, p.display_name, p.branch_id, p.user_id,
+  p.avatar_url, p.bio, p.is_active, p.created_at,
+  COALESCE(
+    json_agg(ps.service_id) 
+    FILTER (WHERE ps.service_id IS NOT NULL), 
+    '[]'::json
+  ) as services
+FROM professionals p
+LEFT JOIN professional_services ps ON p.id = ps.professional_id
+WHERE p.id = %s
+GROUP BY p.id, p.business_id, p.display_name, ...
+```
+
+Resultado: Devuelve profesional con array de service_ids incluido.
+
+**Método `find_by_business_id()`:**
+- Mismo pattern: LEFT JOIN + json_agg
+- Devuelve lista completa de profesionales con servicios cargados
+
+**Método `create()`:**
+```python
+professional = dict(result)
+professional['services'] = []  # Inicializa vacío
+return professional
+```
+
+**Método `update()`:**
+```python
+if result:
+    updated = dict(result)
+    services = self.get_services(professional_id)  # Obtener servicios actuales
+    updated['services'] = [s['id'] for s in services]  # Agregar al response
+    return updated
+```
+
+**3. Actualizar frontend (ProfessionalsPage.tsx):**
+
+**Método `handleEdit()`:**
+```typescript
+// ANTES:
+setSelectedServices(new Set());  // ← Siempre vacío
+
+// DESPUÉS:
+setSelectedServices(new Set(prof.services || []));  // ← Carga servicios del profesional
+```
+
+Ahora cuando abres un profesional para editar, los checkboxes se cargan con los servicios ya asignados.
+
+### Testing Verification
+
+✅ **Dark Mode:**
+- Input labels visibles en dark mode
+- Selects de Fecha/Horario oscuros con texto claro
+- Checkboxes con tamaño consistente
+- Todos los textos con colores apropiados
+
+✅ **Professional Services:**
+- Crear profesional sin servicios → checkboxes vacíos ✓
+- Asignar servicios → se guardan ✓
+- Editar profesional → servicios asignados aparecen tildados ✓
+- Cambiar servicios → se actualiza correctamente ✓
+- Ver profesional en panel → datos correcto ✓
+
+### Características Completadas
+
+✅ **Dark mode completo y consistente** en todas las páginas CRUD
+✅ **Checkboxes UI normalizado** — mismo tamaño, mejor spacing
+✅ **Servicios de profesionales persistentes** — se guardan y cargan correctamente
+✅ **Labels claros en dark mode** — contraste mejorado
+✅ **Selects con dark mode** — tiempo, fecha, sucursal visibles
+
+### Próximos Pasos
+
+1. **Página de Disponibilidad:** Interfaz para profesionales definan horarios semanales y bloqueos
+2. **Integraciones de Email:** Resend/SMTP para confirmaciones y recordatorios
+3. **Página "Mis Negocios":** Gestionar múltiples negocios desde panel admin
+4. **Integraciones de Pago:** Mercado Pago + Google Calendar
+
+---
+
+*Última actualización: 2026-05-22 (Sesión 13 - Dark Mode Refinement + Professional Services Persistence)*

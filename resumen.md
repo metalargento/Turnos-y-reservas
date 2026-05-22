@@ -226,4 +226,31 @@ Dashboard donde el dueño del negocio gestiona su operación:
 
 ---
 
-*Última actualización: 2026-05-20 (Sesión 11 - Dashboard Interactivo + Portal Cliente)*
+---
+
+## 📝 Cambios en Sesión 12 & 13
+
+### Sesión 12: Migración a Supabase
+- **Base de datos:** Migración exitosa a Supabase (Pooling Connection)
+- **Migraciones:** Sistema automático funciona con Supabase (SET search_path agregado)
+- **Testing:** Widget público y portal cliente verificados end-to-end con datos en nube
+
+### Sesión 13: Dark Mode Refinement + Professional Services Fix
+- **Dark Mode Completo:**
+  - Input labels: `dark:text-neutral-200` (más claro)
+  - Select elements (Fecha, Hora, Sucursal): dark mode completo
+  - Textos de página: colores ajustados para contraste
+  - Checkboxes: tamaño normalizado + spacing mejorado
+
+- **Bug Critical Resuelto — Profesionales Services Persistence:**
+  - **Problema:** Servicios asignados a profesionales no se guardaban
+  - **Causa:** Backend no devolvía service_ids cuando se obtenía un profesional
+  - **Solución:**
+    1. Tipo Professional ahora incluye `services?: string[]`
+    2. Backend queries (find_by_id, find_by_business_id) usan LEFT JOIN + json_agg para devolver servicios
+    3. Frontend handleEdit carga servicios: `new Set(prof.services || [])`
+  - **Resultado:** ✅ Servicios se guardan y cargan correctamente en edición
+
+---
+
+*Última actualización: 2026-05-22 (Sesión 13 - Dark Mode Refinement + Professional Services Persistence)*
