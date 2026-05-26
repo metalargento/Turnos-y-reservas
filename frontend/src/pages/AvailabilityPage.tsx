@@ -4,7 +4,7 @@ import { Card, CardContent, Button, Alert } from '../components/ui';
 import { availabilityApi } from '../api/availability';
 import { professionalsApi } from '../api/professionals';
 import { useBusinessContext } from '../contexts/BusinessContext';
-import type { Professional, Availability, ScheduleBlock, AvailabilityCreateRequest, ScheduleBlockCreateRequest } from '../types';
+import type { Professional, Availability, ScheduleBlock, AvailabilityCreateRequest } from '../types';
 
 const DAYS_OF_WEEK = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -27,9 +27,10 @@ export function AvailabilityPage() {
   const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [selectedProf, setSelectedProf] = useState<Professional | null>(null);
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profDataMap, setProfDataMap] = useState<{
+    [profId: string]: { availability: Availability[]; blocks: ScheduleBlock[] };
+  }>({});
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState('');
 
   // Form states
@@ -50,45 +51,60 @@ export function AvailabilityPage() {
 
   useEffect(() => {
     if (!activeBusiness) return;
-    loadProfessionals();
+    loadAllProfessionalsAndData();
   }, [activeBusiness?.id]);
 
-  useEffect(() => {
-    if (!selectedProf) return;
-    loadProfData();
-  }, [selectedProf?.id]);
-
-  const loadProfessionals = async () => {
+  const loadAllProfessionalsAndData = async () => {
     if (!activeBusiness) return;
     try {
-      setIsLoading(true);
-      const result = await professionalsApi.list(activeBusiness.id);
-      setProfessionals(result.data.professionals || []);
-      if (result.data.professionals && result.data.professionals.length > 0) {
-        setSelectedProf(result.data.professionals[0]);
+      setIsInitialLoading(true);
+      const profsResult = await professionalsApi.list(activeBusiness.id);
+      const profs = profsResult.data.professionals || [];
+      setProfessionals(profs);
+
+      const dataMap: Record<string, { availability: Availability[]; blocks: ScheduleBlock[] }> = {};
+      const promises = profs.map(prof =>
+        Promise.all([
+          availabilityApi.getAvailability(prof.id),
+          availabilityApi.getScheduleBlocks(prof.id),
+        ]).then(([availResult, blocksResult]) => {
+          dataMap[prof.id] = {
+            availability: availResult.data.availabilities || [],
+            blocks: blocksResult.data.blocks || [],
+          };
+        })
+      );
+
+      await Promise.all(promises);
+      setProfDataMap(dataMap);
+
+      if (profs.length > 0) {
+        setSelectedProf(profs[0]);
       }
+      setError('');
     } catch (err: any) {
-      setError(extractErrorMessage(err) || 'Error al cargar profesionales');
+      setError(extractErrorMessage(err) || 'Error al cargar datos');
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
     }
   };
 
-  const loadProfData = async () => {
-    if (!selectedProf) return;
+  const updateProfData = async (profId: string) => {
     try {
-      setIsLoading(true);
       const [availResult, blocksResult] = await Promise.all([
-        availabilityApi.getAvailability(selectedProf.id),
-        availabilityApi.getScheduleBlocks(selectedProf.id),
+        availabilityApi.getAvailability(profId),
+        availabilityApi.getScheduleBlocks(profId),
       ]);
-      setAvailability(availResult.data.availabilities || []);
-      setBlocks(blocksResult.data.blocks || []);
+      setProfDataMap(prev => ({
+        ...prev,
+        [profId]: {
+          availability: availResult.data.availabilities || [],
+          blocks: blocksResult.data.blocks || [],
+        },
+      }));
       setError('');
     } catch (err: any) {
       setError(extractErrorMessage(err) || 'Error al cargar disponibilidad');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -119,7 +135,7 @@ export function AvailabilityPage() {
         end_time: modalEndTime,
       };
       await availabilityApi.createAvailability(selectedProf.id, data);
-      await loadProfData();
+      await updateProfData(selectedProf.id);
       setShowTimeModal(false);
       setModalError('');
       setError('');
@@ -131,9 +147,10 @@ export function AvailabilityPage() {
 
   const handleDeleteAvailability = async (availId: string) => {
     if (!confirm('¿Eliminar este horario?')) return;
+    if (!selectedProf) return;
     try {
       await availabilityApi.deleteAvailability(availId);
-      await loadProfData();
+      await updateProfData(selectedProf.id);
       setError('');
     } catch (err: any) {
       setError(extractErrorMessage(err) || 'Error al eliminar horario');
@@ -160,7 +177,7 @@ export function AvailabilityPage() {
       setBlockReason('');
       setBlockAllDay(false);
       setShowBlockForm(false);
-      await loadProfData();
+      await updateProfData(selectedProf.id);
       setError('');
     } catch (err: any) {
       setError(extractErrorMessage(err) || 'Error al crear bloqueo');
@@ -169,9 +186,10 @@ export function AvailabilityPage() {
 
   const handleDeleteBlock = async (blockId: string) => {
     if (!confirm('¿Eliminar este bloqueo?')) return;
+    if (!selectedProf) return;
     try {
       await availabilityApi.deleteScheduleBlock(blockId);
-      await loadProfData();
+      await updateProfData(selectedProf.id);
       setError('');
     } catch (err: any) {
       setError(extractErrorMessage(err) || 'Error al eliminar bloqueo');
@@ -179,7 +197,14 @@ export function AvailabilityPage() {
   };
 
   const getAvailabilityForDay = (dayOfWeek: number) => {
+    if (!selectedProf) return [];
+    const availability = profDataMap[selectedProf.id]?.availability || [];
     return availability.filter(a => a.day_of_week === dayOfWeek && a.is_active);
+  };
+
+  const getBlocks = () => {
+    if (!selectedProf) return [];
+    return profDataMap[selectedProf.id]?.blocks || [];
   };
 
   const formatDate = (isoString: string) => {
@@ -188,13 +213,6 @@ export function AvailabilityPage() {
     const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
     const year = date.getUTCFullYear();
     return `${day}/${month}/${year}`;
-  };
-
-  const formatTime = (isoString: string) => {
-    return new Date(isoString).toLocaleTimeString('es-AR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   const formatBlockTime = (isoString: string) => {
@@ -208,7 +226,7 @@ export function AvailabilityPage() {
     return formatBlockTime(from) === '00:00' && formatBlockTime(to) === '23:59';
   };
 
-  if (businessLoading || isLoading) {
+  if (businessLoading || isInitialLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -246,8 +264,8 @@ export function AvailabilityPage() {
             onClick={() => setSelectedProf(prof)}
             className={`px-4 py-2 rounded-full font-medium transition ${
               selectedProf?.id === prof.id
-                ? 'bg-black text-white'
-                : 'border border-gray-300 text-gray-700 hover:border-black'
+                ? 'bg-black dark:bg-white text-white dark:text-black'
+                : 'border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:border-gray-400 dark:hover:border-neutral-400'
             }`}
           >
             {prof.display_name}
@@ -417,10 +435,10 @@ export function AvailabilityPage() {
                 )}
 
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {blocks.length === 0 ? (
+                  {getBlocks().length === 0 ? (
                     <p className="text-xs text-gray-500 dark:text-neutral-400 text-center py-4">Sin bloqueos</p>
                   ) : (
-                    blocks.map(block => (
+                    getBlocks().map(block => (
                       <div key={block.id} className="p-2 border border-gray-200 dark:border-neutral-600 rounded-lg">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
