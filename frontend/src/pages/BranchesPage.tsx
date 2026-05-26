@@ -66,7 +66,7 @@ export function BranchesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Sucursales</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Sucursales</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
 
@@ -75,7 +75,7 @@ export function BranchesPage() {
         <div className="col-span-1">
           <Card className="sticky top-6">
             <CardContent className="space-y-4">
-              <h3 className="font-semibold text-lg">
+              <h3 className="font-semibold text-lg dark:text-neutral-100">
                 {editingId ? 'Editar sucursal' : 'Nueva sucursal'}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,16 +137,16 @@ export function BranchesPage() {
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-neutral-100">
                           {branch.name}
                         </h3>
                         {branch.address && (
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">
                             {branch.address}
                           </p>
                         )}
                         {branch.phone && (
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">
                             {branch.phone}
                           </p>
                         )}

@@ -141,10 +141,10 @@ export function DashboardPage() {
     <div className="space-y-6">
       {/* Encabezado */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-neutral-100">
           Bienvenido, {user?.full_name}
         </h1>
-        <p className="text-gray-500 text-lg mt-1">{activeBusiness.name}</p>
+        <p className="text-gray-500 dark:text-neutral-400 text-lg mt-1">{activeBusiness.name}</p>
       </div>
 
       {/* Tarjetas de estadísticas */}
@@ -159,7 +159,7 @@ export function DashboardPage() {
               <div className={`text-3xl font-bold ${stat.textColor} mb-1`}>
                 {stat.value}
               </div>
-              <div className="text-sm text-gray-600 flex items-center justify-center gap-1">
+              <div className="text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
                 <span>{stat.icon}</span>
                 <span>{stat.label}</span>
               </div>
@@ -172,7 +172,7 @@ export function DashboardPage() {
       <Card>
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">{getTabLabel()}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
             {selectedTab !== 'upcoming' && (
               <Link
                 to={selectedTab === 'clients' ? '/professionals' : '/bookings'}
@@ -194,13 +194,13 @@ export function DashboardPage() {
                     {clients.map((client) => (
                       <div
                         key={client.client_email}
-                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
                       >
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
                             {client.client_name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
                             {client.client_email}
                             {client.client_phone && <span> • {client.client_phone}</span>}
                           </div>
@@ -216,7 +216,7 @@ export function DashboardPage() {
                 );
               } else {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
                     No hay clientes con reservas este mes
                   </div>
                 );
@@ -229,13 +229,13 @@ export function DashboardPage() {
                     {bookings.map((booking) => (
                       <div
                         key={booking.id}
-                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
                       >
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
                             {booking.client_name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
                             {booking.professional_name && (
                               <span>{booking.professional_name}</span>
                             )}
@@ -251,10 +251,10 @@ export function DashboardPage() {
                           )}
                         </div>
                         <div className="text-right">
-                          <div className="font-medium text-gray-900">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
                             {formatTime(booking.starts_at)}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
                             {formatDate(booking.starts_at)}
                           </div>
                           <div className="text-xs font-medium mt-1">
@@ -273,7 +273,7 @@ export function DashboardPage() {
                 );
               } else {
                 return (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
                     No hay reservas para este período
                   </div>
                 );
@@ -286,35 +286,35 @@ export function DashboardPage() {
       {/* Accesos rápidos */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Acciones rápidas</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Acciones rápidas</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Link
               to="/bookings"
-              className="p-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
             >
               <div className="text-2xl mb-2">📅</div>
-              <div className="text-sm font-medium text-gray-900">Reservas</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Reservas</div>
             </Link>
             <Link
               to="/services"
-              className="p-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
             >
               <div className="text-2xl mb-2">🔧</div>
-              <div className="text-sm font-medium text-gray-900">Servicios</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Servicios</div>
             </Link>
             <Link
               to="/professionals"
-              className="p-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
             >
               <div className="text-2xl mb-2">👥</div>
-              <div className="text-sm font-medium text-gray-900">Profesionales</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Profesionales</div>
             </Link>
             <Link
               to="/availability"
-              className="p-4 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
             >
               <div className="text-2xl mb-2">⏰</div>
-              <div className="text-sm font-medium text-gray-900">Disponibilidad</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Disponibilidad</div>
             </Link>
           </div>
         </CardContent>

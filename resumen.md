@@ -253,4 +253,57 @@ Dashboard donde el dueño del negocio gestiona su operación:
 
 ---
 
-*Última actualización: 2026-05-22 (Sesión 13 - Dark Mode Refinement + Professional Services Persistence)*
+---
+
+## 📝 Cambios en Sesión 14
+
+### Frontend — Dark Mode Completamente Implementado
+
+**Sesión 13 dejó 4 páginas con colores oscuros (text-gray-900, text-gray-700/500 sin dark mode):**
+- DashboardPage: Encabezado, listas, acciones rápidas oscuros
+- BookingsPage: Nombres de clientes, profesionales, fechas oscuros
+- BranchesPage: Nombres de sucursales oscuros
+- SettingsPage: Múltiples secciones (información, marca, configuración, plan) con textos oscuros
+
+**Solución aplicada en Sesión 14:**
+
+1. **DashboardPage.tsx** — Encabezado y listas:
+   - Título principal: `dark:text-neutral-100`
+   - Nombre del negocio: `dark:text-neutral-400`
+   - Labels en tarjetas: `dark:text-neutral-400`
+   - Bordes de listas: `dark:border-neutral-600`, hover: `dark:hover:bg-neutral-700`
+   - Nombres de clientes/reservas: `dark:text-neutral-100`
+   - Detalles (email, profesional): `dark:text-neutral-400`
+   - Acciones rápidas: bordes y hover con dark mode
+
+2. **BookingsPage.tsx** — Cards de reservas:
+   - Cliente name: `dark:text-neutral-100`
+   - Email/teléfono: `dark:text-neutral-400`
+   - Profesional label: `dark:text-neutral-200`, nombre: `dark:text-neutral-100`
+   - Fecha/hora: fondo `dark:bg-neutral-700`, texto `dark:text-neutral-100`
+   - Notas: `dark:text-neutral-400`
+
+3. **BranchesPage.tsx** — Lista de sucursales:
+   - Título: `dark:text-neutral-100`
+   - Sucursal name: `dark:text-neutral-100`
+   - Dirección/teléfono: `dark:text-neutral-400`
+
+4. **SettingsPage.tsx** — Todas las secciones (la más grande):
+   - **Información del negocio:** Títulos, labels, valores con dark mode completo
+   - **Marca:** Colores, inputs, preview con dark mode
+   - **Configuración de agenda:** Selects, SMTP (azul oscuro), checkbox con dark mode
+   - **Plan:** Labels, estado, fechas con dark mode
+   - Textarea y inputs: `dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-600`
+
+**Patrón consistente utilizado:**
+- `dark:text-neutral-100` — Títulos y textos principales
+- `dark:text-neutral-200` — Labels secundarios
+- `dark:text-neutral-400` — Textos terciarios
+- `dark:bg-neutral-700/800` — Fondos oscuros
+- `dark:border-neutral-600` — Bordes
+
+**Resultado:** ✅ Dark mode 100% en todas las páginas. Ningún texto oscuro en dark mode.
+
+---
+
+*Última actualización: 2026-05-26 (Sesión 14 - Dark Mode Completo para todas las páginas)*

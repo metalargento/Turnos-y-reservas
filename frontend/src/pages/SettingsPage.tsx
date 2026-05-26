@@ -157,7 +157,7 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Configuración</h1>
 
       {error && <Alert variant="error">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
@@ -165,25 +165,25 @@ export function SettingsPage() {
       {/* Sección 1: Información básica */}
       <Card>
         <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg">Información del negocio</h3>
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Información del negocio</h3>
 
           {!editingBasic ? (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Nombre</label>
-                <p className="text-gray-900">{activeBusiness.name}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Nombre</label>
+                <p className="text-gray-900 dark:text-neutral-100">{activeBusiness.name}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Rubro</label>
-                <p className="text-gray-900">{activeBusiness.rubro}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Rubro</label>
+                <p className="text-gray-900 dark:text-neutral-100">{activeBusiness.rubro}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Descripción</label>
-                <p className="text-gray-900">{activeBusiness.description || '—'}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Descripción</label>
+                <p className="text-gray-900 dark:text-neutral-100">{activeBusiness.description || '—'}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">URL pública</label>
-                <p className="text-gray-900 font-mono text-sm">{activeBusiness.slug}</p>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">URL pública</label>
+                <p className="text-gray-900 dark:text-neutral-100 font-mono text-sm">{activeBusiness.slug}</p>
               </div>
               <Button size="sm" onClick={() => setEditingBasic(true)} className="w-full">
                 Editar información
@@ -202,11 +202,11 @@ export function SettingsPage() {
                 onChange={(e) => setBasicForm({ ...basicForm, rubro: e.target.value })}
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-1">Descripción</label>
                 <textarea
                   value={basicForm.description}
                   onChange={(e) => setBasicForm({ ...basicForm, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black dark:bg-neutral-800 dark:text-neutral-100"
                   rows={3}
                   placeholder="Descripción de tu negocio..."
                 />
@@ -232,7 +232,7 @@ export function SettingsPage() {
       {/* Sección 2: Marca */}
       <Card>
         <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg">Marca</h3>
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Marca</h3>
 
           <Input
             label="Logo URL"
@@ -243,43 +243,43 @@ export function SettingsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Color primario</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">Color primario</label>
               <div className="flex gap-2">
                 <input
                   type="color"
                   value={brandForm.primary_color}
                   onChange={(e) => setBrandForm({ ...brandForm, primary_color: e.target.value })}
-                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+                  className="h-10 w-16 rounded border border-gray-300 dark:border-neutral-600 cursor-pointer"
                 />
                 <input
                   type="text"
                   value={brandForm.primary_color}
                   onChange={(e) => setBrandForm({ ...brandForm, primary_color: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm dark:bg-neutral-800 dark:text-neutral-100"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Color secundario</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">Color secundario</label>
               <div className="flex gap-2">
                 <input
                   type="color"
                   value={brandForm.secondary_color}
                   onChange={(e) => setBrandForm({ ...brandForm, secondary_color: e.target.value })}
-                  className="h-10 w-16 rounded border border-gray-300 cursor-pointer"
+                  className="h-10 w-16 rounded border border-gray-300 dark:border-neutral-600 cursor-pointer"
                 />
                 <input
                   type="text"
                   value={brandForm.secondary_color}
                   onChange={(e) => setBrandForm({ ...brandForm, secondary_color: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm dark:bg-neutral-800 dark:text-neutral-100"
                 />
               </div>
             </div>
           </div>
 
           {/* Preview de colores */}
-          <div className="flex gap-2 h-12 rounded-lg overflow-hidden border border-gray-200">
+          <div className="flex gap-2 h-12 rounded-lg overflow-hidden border border-gray-200 dark:border-neutral-600">
             <div style={{ backgroundColor: brandForm.primary_color, flex: 1 }} title="Color primario" />
             <div style={{ backgroundColor: brandForm.secondary_color, flex: 1 }} title="Color secundario" />
           </div>
@@ -293,7 +293,7 @@ export function SettingsPage() {
       {/* Sección 3: Agenda y email */}
       <Card>
         <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg">Configuración de agenda</h3>
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Configuración de agenda</h3>
 
           <Input
             label="Horas mínimas de anticipación"
@@ -305,11 +305,11 @@ export function SettingsPage() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Proveedor de email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">Proveedor de email</label>
             <select
               value={agendaForm.email_provider}
               onChange={(e) => setAgendaForm({ ...agendaForm, email_provider: e.target.value as 'resend' | 'smtp' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black dark:bg-neutral-800 dark:text-neutral-100"
             >
               <option value="resend">Resend (recomendado)</option>
               <option value="smtp">SMTP propio</option>
@@ -317,7 +317,7 @@ export function SettingsPage() {
           </div>
 
           {agendaForm.email_provider === 'smtp' && (
-            <div className="bg-blue-50 p-4 rounded-lg space-y-4 border border-blue-200">
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg space-y-4 border border-blue-200 dark:border-blue-800">
               <Input
                 label="Host SMTP"
                 placeholder="smtp.gmail.com"
@@ -353,9 +353,9 @@ export function SettingsPage() {
               id="google_calendar"
               checked={agendaForm.google_calendar_enabled}
               onChange={(e) => setAgendaForm({ ...agendaForm, google_calendar_enabled: e.target.checked })}
-              className="rounded border-gray-300"
+              className="rounded border-gray-300 dark:border-neutral-600"
             />
-            <label htmlFor="google_calendar" className="text-sm text-gray-700">
+            <label htmlFor="google_calendar" className="text-sm text-gray-700 dark:text-neutral-200">
               Integración con Google Calendar habilitada
             </label>
           </div>
@@ -369,15 +369,15 @@ export function SettingsPage() {
       {/* Sección 4: Plan */}
       <Card>
         <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg">Plan y suscripción</h3>
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Plan y suscripción</h3>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-2">Estado del plan</label>
+            <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-2">Estado del plan</label>
             {getPlanStatusBadge()}
           </div>
           {activeBusiness.plan_expires_at && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Vence el</label>
-              <p className="text-gray-900">
+              <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Vence el</label>
+              <p className="text-gray-900 dark:text-neutral-100">
                 {new Date(activeBusiness.plan_expires_at).toLocaleDateString('es-AR')}
               </p>
             </div>

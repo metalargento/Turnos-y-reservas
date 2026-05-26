@@ -58,7 +58,7 @@ export function BookingsPage() {
     if (businessId) {
       loadAllData();
     }
-  }, [businessId, viewMode]);
+  }, [businessId]);
 
   const loadBusiness = async () => {
     try {
@@ -75,19 +75,14 @@ export function BookingsPage() {
     if (!businessId) return;
     setIsLoading(true);
     try {
-      const statusFilter = viewMode === 'upcoming' ? 'confirmed' : undefined;
       const [bookingsResult, profsResult, servResult, branchResult] = await Promise.all([
-        bookingsApi.list(businessId, statusFilter),
+        bookingsApi.list(businessId),
         professionalsApi.list(businessId),
         servicesApi.list(businessId),
         branchesApi.list(businessId),
       ]);
 
-      let allBookings = bookingsResult.data.bookings || [];
-      if (viewMode === 'history') {
-        allBookings = allBookings.filter(b => b.status !== 'confirmed');
-      }
-
+      const allBookings = bookingsResult.data.bookings || [];
       const sortedBookings = allBookings.sort((a, b) =>
         new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
       );
@@ -99,6 +94,14 @@ export function BookingsPage() {
       setError(err.response?.data?.detail || 'Error al cargar datos');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getFilteredBookings = () => {
+    if (viewMode === 'upcoming') {
+      return bookings.filter(b => b.status === 'confirmed');
+    } else {
+      return bookings.filter(b => b.status !== 'confirmed');
     }
   };
 
@@ -173,6 +176,12 @@ export function BookingsPage() {
       professionalName.includes(query) ||
       serviceName.includes(query)
     );
+  }).filter(b => {
+    if (viewMode === 'upcoming') {
+      return b.status === 'confirmed';
+    } else {
+      return b.status !== 'confirmed';
+    }
   });
 
   if (isLoading) {
@@ -306,8 +315,8 @@ export function BookingsPage() {
                 onClick={() => setViewMode('upcoming')}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   viewMode === 'upcoming'
-                    ? 'bg-black text-white'
-                    : 'border border-gray-300 text-gray-700 hover:border-black'
+                    ? 'bg-black dark:bg-white text-white dark:text-black'
+                    : 'border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:border-gray-400 dark:hover:border-neutral-400'
                 }`}
               >
                 Próximas
@@ -316,8 +325,8 @@ export function BookingsPage() {
                 onClick={() => setViewMode('history')}
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   viewMode === 'history'
-                    ? 'bg-black text-white'
-                    : 'border border-gray-300 text-gray-700 hover:border-black'
+                    ? 'bg-black dark:bg-white text-white dark:text-black'
+                    : 'border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-neutral-300 hover:border-gray-400 dark:hover:border-neutral-400'
                 }`}
               >
                 Historial
@@ -350,22 +359,22 @@ export function BookingsPage() {
                     <CardContent className="p-2">
                       <div className="grid grid-cols-2 gap-2 mb-1">
                         <div>
-                          <h3 className="font-semibold text-sm text-gray-900">{booking.client_name}</h3>
-                          <p className="text-xs text-gray-600">{booking.client_email}</p>
+                          <h3 className="font-semibold text-sm text-gray-900 dark:text-neutral-100">{booking.client_name}</h3>
+                          <p className="text-xs text-gray-600 dark:text-neutral-400">{booking.client_email}</p>
                           {booking.client_phone && (
-                            <p className="text-xs text-gray-600">{booking.client_phone}</p>
+                            <p className="text-xs text-gray-600 dark:text-neutral-400">{booking.client_phone}</p>
                           )}
                         </div>
 
                         <div>
-                          <p className="text-xs font-medium text-gray-700">Profesional</p>
-                          <p className="text-sm text-gray-900">{getProfessionalName(booking.professional_id || '')}</p>
-                          <p className="text-xs text-gray-600">{getServiceName(booking.service_id || '')}</p>
+                          <p className="text-xs font-medium text-gray-700 dark:text-neutral-200">Profesional</p>
+                          <p className="text-sm text-gray-900 dark:text-neutral-100">{getProfessionalName(booking.professional_id || '')}</p>
+                          <p className="text-xs text-gray-600 dark:text-neutral-400">{getServiceName(booking.service_id || '')}</p>
                         </div>
                       </div>
 
-                      <div className="mb-1 p-1 bg-gray-50 rounded text-xs">
-                        <p className="font-medium text-gray-700">{formatDate(booking.starts_at)}</p>
+                      <div className="mb-1 p-1 bg-gray-50 dark:bg-neutral-700 rounded text-xs">
+                        <p className="font-medium text-gray-700 dark:text-neutral-100">{formatDate(booking.starts_at)}</p>
                       </div>
 
                       <div className="flex items-center justify-between pt-1 border-t gap-1">
@@ -392,7 +401,7 @@ export function BookingsPage() {
                       </div>
 
                       {booking.client_notes && (
-                        <p className="text-xs text-gray-600 mt-1 italic">Nota: {booking.client_notes}</p>
+                        <p className="text-xs text-gray-600 dark:text-neutral-400 mt-1 italic">Nota: {booking.client_notes}</p>
                       )}
                     </CardContent>
                   </Card>

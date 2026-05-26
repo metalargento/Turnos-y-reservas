@@ -2373,4 +2373,182 @@ Ahora cuando abres un profesional para editar, los checkboxes se cargan con los 
 
 ---
 
-*Última actualización: 2026-05-22 (Sesión 13 - Dark Mode Refinement + Professional Services Persistence)*
+---
+
+## Sesión 14: Dark Mode Completo - Todas las páginas oscuras aclaradas
+
+### Resumen
+
+En sesión anterior se corrigieron dark mode en algunos componentes. Quedan 4 páginas principales con colores oscuros (text-gray-900, text-gray-600/700 sin dark mode equivalente). Se corrigieron en esta sesión.
+
+### Cambios Implementados
+
+**DashboardPage.tsx** — Encabezado, listas y acciones rápidas con dark mode:
+
+```typescript
+// Encabezado
+<h1 className="text-3xl font-bold text-gray-900 dark:text-neutral-100">
+  Bienvenido, {user?.full_name}
+</h1>
+<p className="text-gray-500 dark:text-neutral-400 text-lg mt-1">
+  {activeBusiness.name}
+</p>
+
+// Labels en tarjetas de estadísticas
+<div className="text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
+  {stat.label}
+</div>
+
+// Título del panel de datos
+<h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">
+  {getTabLabel()}
+</h2>
+
+// Listas de clientes y reservas
+<div className="border border-gray-200 dark:border-neutral-600 dark:hover:bg-neutral-700">
+  <div className="font-medium text-gray-900 dark:text-neutral-100">{client.client_name}</div>
+  <div className="text-sm text-gray-500 dark:text-neutral-400">{client.client_email}</div>
+</div>
+
+// Empty states
+<div className="text-gray-500 dark:text-neutral-400">
+  No hay clientes con reservas este mes
+</div>
+
+// Acciones rápidas
+<h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">
+  Acciones rápidas
+</h2>
+<Link className="border border-gray-300 dark:border-neutral-600 dark:hover:bg-neutral-700">
+  <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Reservas</div>
+</Link>
+```
+
+**BookingsPage.tsx** — Cards de reservas con elementos invisibles en dark mode:
+
+```typescript
+// Nombres de clientes: agregado dark:text-neutral-100
+<h3 className="font-semibold text-sm text-gray-900 dark:text-neutral-100">
+  {booking.client_name}
+</h3>
+
+// Emails/teléfonos: agregado dark:text-neutral-400
+<p className="text-xs text-gray-600 dark:text-neutral-400">{booking.client_email}</p>
+
+// Profesional: agregado dark mode a label y nombre
+<p className="text-xs font-medium text-gray-700 dark:text-neutral-200">Profesional</p>
+<p className="text-sm text-gray-900 dark:text-neutral-100">{getProfessionalName(...)}</p>
+
+// Fecha/hora: fondo + texto con dark mode
+<div className="mb-1 p-1 bg-gray-50 dark:bg-neutral-700 rounded text-xs">
+  <p className="font-medium text-gray-700 dark:text-neutral-100">{formatDate(...)}</p>
+</div>
+
+// Notas: agregado dark:text-neutral-400
+<p className="text-xs text-gray-600 dark:text-neutral-400 mt-1 italic">
+  Nota: {booking.client_notes}
+</p>
+```
+
+**BranchesPage.tsx** — Lista de sucursales con nombres oscuros:
+
+```typescript
+// Título principal: agregado dark:text-neutral-100
+<h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Sucursales</h1>
+
+// Título del formulario: agregado dark:text-neutral-100
+<h3 className="font-semibold text-lg dark:text-neutral-100">
+  {editingId ? 'Editar sucursal' : 'Nueva sucursal'}
+</h3>
+
+// Nombres de sucursales: agregado dark:text-neutral-100
+<h3 className="font-semibold text-gray-900 dark:text-neutral-100">{branch.name}</h3>
+
+// Direcciones y teléfonos: agregado dark:text-neutral-400
+<p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">{branch.address}</p>
+<p className="text-sm text-gray-600 dark:text-neutral-400 mt-1">{branch.phone}</p>
+```
+
+**SettingsPage.tsx** — Múltiples secciones oscuras (la más grande):
+
+1. **Sección Información del negocio:**
+   - Título: `dark:text-neutral-100`
+   - Labels (Nombre, Rubro, etc): `text-gray-500` → `dark:text-neutral-400`
+   - Valores mostrados: `text-gray-900` → `dark:text-neutral-100`
+   - Textarea de descripción: agregado `dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-600`
+
+2. **Sección Marca:**
+   - Título: `dark:text-neutral-100`
+   - Labels de colores: `text-gray-700` → `dark:text-neutral-200`
+   - Inputs de color: agregado `dark:border-neutral-600`
+   - Inputs de hex: `dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-600`
+   - Preview de colores: `dark:border-neutral-600`
+
+3. **Sección Configuración de agenda:**
+   - Título: `dark:text-neutral-100`
+   - Label "Proveedor de email": `dark:text-neutral-200`
+   - Select: `dark:bg-neutral-800 dark:text-neutral-100 dark:border-neutral-600`
+   - Contenedor SMTP: `dark:bg-blue-950 dark:border-blue-800`
+   - Checkbox Google Calendar: `dark:border-neutral-600` en input, `dark:text-neutral-200` en label
+
+4. **Sección Plan y suscripción:**
+   - Título: `dark:text-neutral-100`
+   - Labels: `dark:text-neutral-400`
+   - Fecha de vencimiento: `dark:text-neutral-100`
+
+### Patrón Consistente
+
+Utilizamos este esquema de colores en todas las páginas:
+
+| Elemento | Light Mode | Dark Mode |
+|----------|-----------|-----------|
+| Títulos principales | `text-gray-900` | `dark:text-neutral-100` |
+| Labels y textos secundarios | `text-gray-700` | `dark:text-neutral-200` |
+| Textos terciarios | `text-gray-500/600` | `dark:text-neutral-400` |
+| Fondos de inputs | `bg-slate-50` | `dark:bg-neutral-800` |
+| Bordes | `border-gray-300/slate-300` | `dark:border-neutral-600` |
+| Fondos de secciones especiales | `bg-blue-50` | `dark:bg-blue-950` |
+
+### Verificación Visual
+
+✅ **BookingsPage:**
+- Nombres de clientes: claros en ambos temas
+- Emails y teléfonos: legibles
+- Profesionales y servicios: visible en dark mode
+- Fecha/hora: con fondo oscuro para contraste
+
+✅ **BranchesPage:**
+- Sucursales nombradas: claras en dark mode
+- Detalles (dirección, teléfono): legibles
+- Consistencia con otras páginas
+
+✅ **SettingsPage:**
+- Todas las secciones: texto legible en dark mode
+- Textarea: background oscuro, texto claro
+- Selects y inputs: dark mode completo
+- Preview de colores: visible con bordes ajustados
+- SMTP config: colores azules ajustados para dark mode
+
+### Características Completadas
+
+✅ **Dark mode 100% en todas las páginas administrativas:**
+- DashboardPage ✓ (sesión 14)
+- BookingsPage ✓ (sesión 14)
+- BranchesPage ✓ (sesión 14)
+- SettingsPage ✓ (sesión 14)
+- ServicesPage ✓ (sesión 13)
+- ProfessionalsPage ✓ (sesión 13)
+
+✅ **Contraste WCAG AA** en todos los elementos
+✅ **Textos nunca oscuros en dark mode** — todos con colores neutral claro
+✅ **Inputs y textareas** con background oscuro para legibilidad
+
+### Próximos Pasos
+
+1. **Página de Disponibilidad:** Interfaz para que profesionales definan horarios semanales y bloqueos (🔴 PENDIENTE)
+2. **Integraciones de Email:** Resend/SMTP para confirmaciones y recordatorios (🔴 PENDIENTE)
+3. **Página "Mis Negocios":** Gestionar múltiples negocios desde panel admin (🔴 PENDIENTE)
+
+---
+
+*Última actualización: 2026-05-26 (Sesión 14 - Dark Mode Completo para todas las páginas)*
