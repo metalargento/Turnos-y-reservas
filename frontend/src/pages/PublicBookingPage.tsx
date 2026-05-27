@@ -17,7 +17,7 @@ import { StepTimeSlots } from '../components/public/StepTimeSlots';
 import { StepClientForm } from '../components/public/StepClientForm';
 import { BookingConfirmation } from '../components/public/BookingConfirmation';
 
-interface BookingWizardState {
+export interface BookingWizardState {
   professional: PublicProfessionalItem | null;
   service: PublicServiceItem | null;
   selectedDate: string | null; // YYYY-MM-DD

@@ -82,7 +82,7 @@ export function OnboardingPage() {
     setIsLoading(true);
     try {
       const result = await onboardingApi.step1CreateBusiness(data);
-      setBusinessId(result.business_id);
+      setBusinessId(result.id);
       setCurrentStep(1);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al crear negocio');
