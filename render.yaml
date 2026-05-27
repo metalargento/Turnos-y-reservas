@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: turnos-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: bash start.sh
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: 10000
