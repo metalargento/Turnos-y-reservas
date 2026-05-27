@@ -4,6 +4,68 @@ Este documento registra todo lo que se va construyendo en el proyecto, con expli
 
 ---
 
+## Sesión 18: Deployment a Producción (Railway + Vercel)
+
+### Resumen
+
+Se completó el deployment del MVP a producción:
+1. **Backend:** Deployado en Railway (https://turnos-y-reservas-production.up.railway.app)
+2. **Frontend:** Deployado en Vercel (https://turnos-y-reservas-4qy2.vercel.app)
+3. **Base de datos:** Supabase (ya estaba en producción)
+
+### Lo que se hizo
+
+#### 1. Limpieza de datos de prueba
+- Eliminamos "Consultorio Chapatin" de la BD para evitar duplicados
+- Mantuvimos solo "Consultorio Pepe Garabato" como negocio de prueba
+
+#### 2. Backend en Railway
+- Creamos `start.sh` para que Railway detecte automáticamente que es un proyecto Python
+- Configuramos todas las variables de entorno:
+  - `RESEND_API_KEY`: Para envío de emails
+  - `DATABASE_URL`: Conexión a Supabase
+  - `SECRET_KEY` y `JWT_SECRET`: Para autenticación
+  - `ALLOWED_ORIGINS`: URLs permitidas (Vercel + localhost)
+  - `FRONTEND_URL`: URL del frontend (para links en emails)
+- **Deploy exitoso:** El backend está online y responde en https://turnos-y-reservas-production.up.railway.app
+
+#### 3. Frontend en Vercel
+- Solucionamos errores de TypeScript:
+  - Creamos `vite-env.d.ts` para que reconozca `import.meta.env`
+  - Ajustamos tipos: Business (solo Resend, sin SMTP), Booking (agregamos `professional_name`, `service_name`)
+  - Exportamos `BookingWizardState` desde PublicBookingPage
+  - Corregimos referencia de `business_id` → `id` en OnboardingPage
+  - Deshabilitamos `noUnusedLocals` en tsconfig.json
+- **Deploy exitoso:** El frontend está online en https://turnos-y-reservas-4qy2.vercel.app
+
+#### 4. Problema de CORS identificado
+- El frontend no puede comunicarse con el backend porque falta configurar CORS
+- Solución: Actualizar `ALLOWED_ORIGINS` en Railway con la URL de Vercel
+  - Cambiar de: `https://tuapp.vercel.app,http://localhost:5173`
+  - A: `https://turnos-y-reservas-4qy2.vercel.app,http://localhost:5173`
+
+#### 5. Bloqueador: Trial de Railway expiró
+- Railway requiere pagar (~$5/mes) o cambiar de plataforma
+- Opciones:
+  - **Railway ($5/mes):** Más simple, ya configurado
+  - **Render (gratis):** Tier gratuito, más lento
+  - **Fly.io (gratis):** Tier gratuito, más rápido pero complejo
+- **Decisión pendiente para mañana**
+
+### Próximos pasos (Mañana)
+
+1. Resolver el tema de Railway (pagar o cambiar plataforma)
+2. Si continuamos en Railway:
+   - Actualizar CORS en variables de entorno
+   - Hacer rebuild del backend
+3. Testing end-to-end:
+   - Intentar login en el admin panel
+   - Hacer una reserva desde el widget público
+   - Verificar que llega email de confirmación
+4. Documentar URLs finales de producción
+
+---
+
 ## Sesión 1: Estructura inicial + Autenticación + Onboarding
 
 ### Resumen

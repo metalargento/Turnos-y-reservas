@@ -1,7 +1,7 @@
 # RESUMEN — Estado Actual del Proyecto
 
-**Última actualización:** 2026-05-21 (Sesión 12)  
-**Estado:** ✅ MVP Funcional + BD en Producción
+**Última actualización:** 2026-05-27 (Sesión 18)  
+**Estado:** ✅ Deployado en Producción (Railway + Vercel) | ⏳ Testing bloqueado por expiración de trial
 
 ---
 
@@ -64,15 +64,31 @@
 
 ---
 
+## URLs de Producción
+
+### Cliente Final
+- **Widget público:** https://turnos-y-reservas-4qy2.vercel.app/book/consultorio-pepe-garabato
+- **Portal cliente:** https://turnos-y-reservas-4qy2.vercel.app/mis-reservas/consultorio-pepe-garabato?email=X&phone=Y
+
+### Administrador
+- **Login:** https://turnos-y-reservas-4qy2.vercel.app/login
+- **Test user:** (se debe crear durante onboarding)
+
+### Backend (Railway)
+- **API base:** https://turnos-y-reservas-production.up.railway.app/api
+- **Docs Swagger:** https://turnos-y-reservas-production.up.railway.app/docs
+- **Status:** ✅ Online (requiere plan pagado de Railway)
+
+---
+
 ## URLs de Prueba (Local)
 
 ### Cliente Final
-- **Widget público:** `http://localhost:5173/book/consultorio-chapatin`
-- **Portal cliente:** `http://localhost:5173/mis-reservas/consultorio-chapatin?email=test@example.com&telefono=1234567890`
+- **Widget público:** `http://localhost:5173/book/consultorio-pepe-garabato`
+- **Portal cliente:** `http://localhost:5173/mis-reservas/consultorio-pepe-garabato?email=test@example.com&phone=1234567890`
 
 ### Administrador
 - **Login:** `http://localhost:5173/login`
-- **Test user:** `test.bookings@example.com` / `Test123456`
 - **Dashboard:** `http://localhost:5173/dashboard` (después de login)
 
 ### Backend
@@ -239,6 +255,47 @@ npm run dev
 
 ---
 
+---
+
+## Deployment Status (Sesión 18 - 2026-05-27)
+
+### ✅ Deployado en Producción
+
+| Componente | Plataforma | URL | Status |
+|-----------|-----------|-----|--------|
+| **Frontend** | Vercel | https://turnos-y-reservas-4qy2.vercel.app | ✅ Online |
+| **Backend** | Railway | https://turnos-y-reservas-production.up.railway.app | ⚠️ Trial expired |
+| **Database** | Supabase | PostgreSQL Connection Pooling | ✅ Online |
+
+### ⏳ Issue Bloqueante
+
+Railway trial expiró y requiere plan pagado ($5/mes). Opciones:
+1. **Pagar Railway** ($5/mes) — Recomendado, ya configurado
+2. **Migrar a Render** (gratis) — Más lento
+3. **Migrar a Fly.io** (gratis) — Más rápido pero complejo
+
+**Decisión pendiente para 2026-05-27**
+
+### Configuración de Producción
+
+#### Variables de Entorno (Railway)
+```
+RESEND_API_KEY=re_WsxpkpsR_DefTF3dfVbpSqGaGskFAiFCH
+EMAIL_FROM=onboarding@resend.dev
+DATABASE_URL=postgresql://postgres.fuaoqndfzxpglhpcahsr:***@aws-1-us-east-1.pooler.supabase.com:6543/postgres
+SECRET_KEY=zJrKlOItDxGBb9vsuHN14lIWYCizNcOc0hCpsOrU6e4
+JWT_SECRET=Dj3KwYTRcUir5Tn8UuV7a7tTpIzR4kEkJfeX_WpGA5s
+ALLOWED_ORIGINS=https://turnos-y-reservas-4qy2.vercel.app,http://localhost:5173
+FRONTEND_URL=https://turnos-y-reservas-4qy2.vercel.app
+```
+
+#### Negocio de Prueba (Producción)
+- **Nombre:** Consultorio Pepe Garabato
+- **Slug:** `consultorio-pepe-garabato`
+- **URL Pública:** https://turnos-y-reservas-4qy2.vercel.app/book/consultorio-pepe-garabato
+
+---
+
 ## Deuda Técnica
 
 - [ ] Tests (unit + integration)
@@ -247,6 +304,8 @@ npm run dev
 - [ ] Recuperación de contraseña
 - [ ] Audit log (quién cambió qué, cuándo)
 - [ ] Backups automáticos de BD
+- [ ] Integración con Mercado Pago
+- [ ] Integración con Google Calendar
 
 ---
 
@@ -255,8 +314,8 @@ npm run dev
 Si hay dudas o bugs:
 1. Revisar PROGRESO.md para historial de decisiones
 2. Revisar CLAUDE.md para convenciones del proyecto
-3. Revisar logs del backend: `http://localhost:8000/docs`
+3. Revisar logs del backend: https://turnos-y-reservas-production.up.railway.app/docs
 
 ---
 
-**Estado:** El sistema está listo para MVP. La próxima fase es desplegar a producción (AWS + Vercel).
+**Estado:** MVP deployado en producción. Pendiente resolver trial de Railway y realizar testing end-to-end completo.
