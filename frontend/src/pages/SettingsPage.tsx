@@ -3,7 +3,6 @@ import { Card, CardContent, Button, Input, Alert } from '../components/ui';
 import { useBusinessContext } from '../contexts/BusinessContext';
 import { onboardingApi } from '../api/onboarding';
 import { businessApi } from '../api/business';
-import type { Business } from '../types';
 
 export function SettingsPage() {
   const { activeBusiness, isLoading: businessLoading, refreshBusiness } = useBusinessContext();
@@ -48,10 +47,10 @@ export function SettingsPage() {
       });
       setAgendaForm({
         min_advance_hours: activeBusiness.min_advance_hours || 1,
-        email_provider: activeBusiness.email_provider || 'resend',
-        smtp_host: activeBusiness.smtp_host || '',
-        smtp_port: activeBusiness.smtp_port?.toString() || '',
-        smtp_user: activeBusiness.smtp_user || '',
+        email_provider: 'resend',
+        smtp_host: '',
+        smtp_port: '',
+        smtp_user: '',
         smtp_password: '',
         google_calendar_enabled: activeBusiness.google_calendar_enabled || false,
       });
@@ -105,16 +104,9 @@ export function SettingsPage() {
     try {
       const agendaData: any = {
         min_advance_hours: agendaForm.min_advance_hours,
-        email_provider: agendaForm.email_provider,
+        email_provider: 'resend',
         google_calendar_enabled: agendaForm.google_calendar_enabled,
       };
-
-      if (agendaForm.email_provider === 'smtp') {
-        agendaData.smtp_host = agendaForm.smtp_host;
-        agendaData.smtp_port = agendaForm.smtp_port ? parseInt(agendaForm.smtp_port) : null;
-        agendaData.smtp_user = agendaForm.smtp_user;
-        agendaData.smtp_password = agendaForm.smtp_password;
-      }
 
       await onboardingApi.step5UpdateAgenda(activeBusiness.id, agendaData);
       setSuccess('Configuración de agenda actualizada');
@@ -304,48 +296,11 @@ export function SettingsPage() {
             onChange={(e) => setAgendaForm({ ...agendaForm, min_advance_hours: parseInt(e.target.value) })}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-200 mb-2">Proveedor de email</label>
-            <select
-              value={agendaForm.email_provider}
-              onChange={(e) => setAgendaForm({ ...agendaForm, email_provider: e.target.value as 'resend' | 'smtp' })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-black dark:bg-neutral-800 dark:text-neutral-100"
-            >
-              <option value="resend">Resend (recomendado)</option>
-              <option value="smtp">SMTP propio</option>
-            </select>
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border border-green-200 dark:border-green-800">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              📧 Los emails de confirmación se envían automáticamente a través de Resend
+            </p>
           </div>
-
-          {agendaForm.email_provider === 'smtp' && (
-            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg space-y-4 border border-blue-200 dark:border-blue-800">
-              <Input
-                label="Host SMTP"
-                placeholder="smtp.gmail.com"
-                value={agendaForm.smtp_host}
-                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_host: e.target.value })}
-              />
-              <Input
-                label="Puerto SMTP"
-                type="number"
-                placeholder="587"
-                value={agendaForm.smtp_port}
-                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_port: e.target.value })}
-              />
-              <Input
-                label="Usuario SMTP"
-                placeholder="tu@email.com"
-                value={agendaForm.smtp_user}
-                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_user: e.target.value })}
-              />
-              <Input
-                label="Contraseña SMTP"
-                type="password"
-                placeholder="••••••••"
-                value={agendaForm.smtp_password}
-                onChange={(e) => setAgendaForm({ ...agendaForm, smtp_password: e.target.value })}
-              />
-            </div>
-          )}
 
           <div className="flex items-center gap-2">
             <input

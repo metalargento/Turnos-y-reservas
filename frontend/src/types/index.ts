@@ -25,10 +25,7 @@ export interface Business {
   plan_status: 'active' | 'expired' | 'cancelled';
   plan_expires_at?: string;
   onboarding_completed: boolean;
-  email_provider: 'resend' | 'smtp';
-  smtp_host?: string;
-  smtp_port?: number;
-  smtp_user?: string;
+  email_provider?: 'resend';
   min_advance_hours: number;
   google_calendar_enabled: boolean;
 }
@@ -170,7 +167,9 @@ export interface Booking {
   business_id: string;
   branch_id?: string;
   professional_id?: string;
+  professional_name?: string;
   service_id?: string;
+  service_name?: string;
   client_name: string;
   client_email: string;
   client_phone?: string;
