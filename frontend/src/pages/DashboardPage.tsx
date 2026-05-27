@@ -1,39 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Card, CardContent, Alert, Button } from '../components/ui';
-import { onboardingApi } from '../api/onboarding';
+import { Link } from 'react-router-dom';
+import { Card, CardContent } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
-import type { Business, OnboardingProgress } from '../types';
+import { useBusinessContext } from '../contexts/BusinessContext';
+import { dashboardApi } from '../api/dashboard';
+import type { DashboardStats, UpcomingBooking, UniqueClient } from '../types';
+
+interface StatCard {
+  id: string;
+  icon: string;
+  label: string;
+  value: number;
+  bgColor: string;
+  textColor: string;
+}
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [business, setBusiness] = useState<Business | null>(null);
-  const [progress, setProgress] = useState<OnboardingProgress | null>(null);
+  const { activeBusiness, isLoading: businessLoading } = useBusinessContext();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState<string>('upcoming');
 
   useEffect(() => {
-    loadBusiness();
-  }, []);
+    if (!activeBusiness) return;
+    loadStats();
+  }, [activeBusiness?.id]);
 
-  const loadBusiness = async () => {
+  const loadStats = async () => {
+    if (!activeBusiness) return;
     try {
-      const result = await onboardingApi.getMyBusiness();
-      if (result.has_business && result.business) {
-        setBusiness(result.business);
-        const progressData = await onboardingApi.getProgress(result.business.id);
-        setProgress(progressData);
-      } else {
-        navigate('/onboarding');
-      }
+      const response = await dashboardApi.getStats(activeBusiness.id);
+      setStats(response.data);
     } catch (err) {
-      navigate('/onboarding');
+      console.error('Error cargando estadísticas:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (isLoading) {
+  if (businessLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
@@ -41,116 +47,278 @@ export function DashboardPage() {
     );
   }
 
-  if (!business) {
+  if (!activeBusiness) {
     return (
       <div className="text-center py-12">
         <h2 className="text-xl font-semibold text-gray-900">No tenés un negocio creado</h2>
         <Link to="/onboarding">
-          <Button className="mt-4">Completar onboarding</Button>
+          <button className="mt-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">
+            Completar onboarding
+          </button>
         </Link>
       </div>
     );
   }
 
+  const statCards: StatCard[] = [
+    {
+      id: 'today',
+      icon: '📅',
+      label: 'Hoy',
+      value: stats?.bookings_today ?? 0,
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+    },
+    {
+      id: 'week',
+      icon: '📊',
+      label: 'Esta semana',
+      value: stats?.bookings_this_week ?? 0,
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600',
+    },
+    {
+      id: 'month',
+      icon: '📆',
+      label: 'Este mes',
+      value: stats?.bookings_this_month ?? 0,
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600',
+    },
+    {
+      id: 'cancelled',
+      icon: '❌',
+      label: 'Canceladas',
+      value: stats?.cancelled_this_month ?? 0,
+      bgColor: 'bg-red-50',
+      textColor: 'text-red-600',
+    },
+    {
+      id: 'clients',
+      icon: '👥',
+      label: 'Clientes',
+      value: stats?.unique_clients_this_month ?? 0,
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-600',
+    },
+  ];
+
+  const formatTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString('es-AR', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
+
+  const getTabData = () => {
+    if (!stats) return { type: 'bookings', data: [] };
+
+    switch (selectedTab) {
+      case 'today':
+        return { type: 'bookings', data: stats.bookings_today_list };
+      case 'week':
+        return { type: 'bookings', data: stats.bookings_this_week_list };
+      case 'month':
+        return { type: 'bookings', data: stats.bookings_this_month_list };
+      case 'cancelled':
+        return { type: 'bookings', data: stats.cancelled_bookings_list };
+      case 'clients':
+        return { type: 'clients', data: stats.unique_clients_list };
+      default:
+        return { type: 'bookings', data: stats.upcoming_bookings };
+    }
+  };
+
+  const getTabLabel = () => {
+    const card = statCards.find(c => c.id === selectedTab);
+    return card?.label || 'Próximas reservas';
+  };
+
   return (
     <div className="space-y-6">
+      {/* Encabezado */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bienvenido, {user?.full_name}</h1>
-        <p className="text-gray-500">{business.name}</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-neutral-100">
+          Bienvenido, {user?.full_name}
+        </h1>
+        <p className="text-gray-500 dark:text-neutral-400 text-lg mt-1">{activeBusiness.name}</p>
       </div>
 
-      {!business.onboarding_completed && progress && (
-        <Alert variant="info">
-          <div className="flex justify-between items-center">
-            <span>Tu negocio está en proceso de configuración</span>
-            <Link to="/onboarding">
-              <Button size="sm">Continuar onboarding</Button>
+      {/* Tarjetas de estadísticas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {statCards.map((stat) => (
+          <Card
+            key={stat.id}
+            className={`${stat.bgColor} ${selectedTab === stat.id ? 'ring-2 ring-offset-2 ring-black' : ''} cursor-pointer transition-all hover:shadow-md`}
+            onClick={() => setSelectedTab(stat.id)}
+          >
+            <CardContent className="p-4 text-center">
+              <div className={`text-3xl font-bold ${stat.textColor} mb-1`}>
+                {stat.value}
+              </div>
+              <div className="text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
+                <span>{stat.icon}</span>
+                <span>{stat.label}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Panel de datos según tab seleccionado */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
+            {selectedTab !== 'upcoming' && (
+              <Link
+                to={selectedTab === 'clients' ? '/professionals' : '/bookings'}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Ver todas
+              </Link>
+            )}
+          </div>
+
+          {(() => {
+            const { type, data } = getTabData();
+
+            if (type === 'clients') {
+              const clients = data as UniqueClient[];
+              if (clients.length > 0) {
+                return (
+                  <div className="space-y-3">
+                    {clients.map((client) => (
+                      <div
+                        key={client.client_email}
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
+                            {client.client_name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
+                            {client.client_email}
+                            {client.client_phone && <span> • {client.client_phone}</span>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                            {client.booking_count} {client.booking_count === 1 ? 'reserva' : 'reservas'}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
+                    No hay clientes con reservas este mes
+                  </div>
+                );
+              }
+            } else {
+              const bookings = data as UpcomingBooking[];
+              if (bookings.length > 0) {
+                return (
+                  <div className="space-y-3">
+                    {bookings.map((booking) => (
+                      <div
+                        key={booking.id}
+                        className="flex items-center justify-between p-3 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
+                            {booking.client_name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
+                            {booking.professional_name && (
+                              <span>{booking.professional_name}</span>
+                            )}
+                            {booking.professional_name && booking.service_name && <span> • </span>}
+                            {booking.service_name && (
+                              <span>{booking.service_name}</span>
+                            )}
+                          </div>
+                          {booking.status === 'cancelled' && booking.cancellation_reason && (
+                            <div className="text-xs text-red-600 mt-1">
+                              Motivo: {booking.cancellation_reason}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100">
+                            {formatTime(booking.starts_at)}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-neutral-400">
+                            {formatDate(booking.starts_at)}
+                          </div>
+                          <div className="text-xs font-medium mt-1">
+                            <span className={`px-2 py-0.5 rounded-full ${
+                              booking.status === 'confirmed' || booking.status === 'rescheduled'
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {booking.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
+                    No hay reservas para este período
+                  </div>
+                );
+              }
+            }
+          })()}
+        </CardContent>
+      </Card>
+
+      {/* Accesos rápidos */}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Acciones rápidas</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Link
+              to="/bookings"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+            >
+              <div className="text-2xl mb-2">📅</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Reservas</div>
+            </Link>
+            <Link
+              to="/services"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+            >
+              <div className="text-2xl mb-2">🔧</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Servicios</div>
+            </Link>
+            <Link
+              to="/professionals"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+            >
+              <div className="text-2xl mb-2">👥</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Profesionales</div>
+            </Link>
+            <Link
+              to="/availability"
+              className="p-4 text-center border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
+            >
+              <div className="text-2xl mb-2">⏰</div>
+              <div className="text-sm font-medium text-gray-900 dark:text-neutral-100">Disponibilidad</div>
             </Link>
           </div>
-        </Alert>
-      )}
-
-      {business.onboarding_completed && (
-        <Alert variant="success">
-          ¡Tu negocio está activo y listo para recibir reservas!
-        </Alert>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardContent className="text-center">
-            <div className="text-3xl font-bold text-black">{business.name}</div>
-            <div className="text-gray-500 text-sm mt-1">{business.rubro}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="text-center">
-            <div className="text-3xl font-bold text-black">{business.slug}</div>
-            <div className="text-gray-500 text-sm mt-1">
-              <a
-                href={`http://localhost:5174/${business.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Ver página pública
-              </a>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="text-center">
-            <div className={`text-3xl font-bold ${business.plan_status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
-              {business.plan_status === 'active' ? 'Activo' : 'Inactivo'}
-            </div>
-            <div className="text-gray-500 text-sm mt-1">Estado del plan</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardContent>
-            <h3 className="font-semibold text-gray-900 mb-4">Configuración</h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Email:</span>
-                <span className="font-medium">{business.email_provider}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Anticipación:</span>
-                <span className="font-medium">{business.min_advance_hours}h</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Google Calendar:</span>
-                <span className="font-medium">{business.google_calendar_enabled ? 'Sí' : 'No'}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
-            <h3 className="font-semibold text-gray-900 mb-4">Próximos pasos</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                <span>Agregar profesionales</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                <span className="text-gray-400">Definir disponibilidad</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-gray-300 rounded-full"></span>
-                <span className="text-gray-400">Configurar Mercado Pago</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

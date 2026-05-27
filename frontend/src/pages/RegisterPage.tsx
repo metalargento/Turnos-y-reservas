@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Card, CardContent, Alert } from '../components/ui';
 import { authApi } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,6 +16,8 @@ export function RegisterPage() {
   const { login } = useAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -80,30 +83,66 @@ export function RegisterPage() {
               error={errors.email?.message}
             />
 
-            <Input
-              label="Contraseña"
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              {...register('password', {
-                required: 'La contraseña es requerida',
-                minLength: {
-                  value: 8,
-                  message: 'Mínimo 8 caracteres',
-                },
-              })}
-              error={errors.password?.message}
-            />
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-display font-medium text-neutral-700">
+                Contraseña
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Mínimo 8 caracteres"
+                  className={`input ${errors.password?.message ? 'input-error' : ''} pr-10`}
+                  {...register('password', {
+                    required: 'La contraseña es requerida',
+                    minLength: {
+                      value: 8,
+                      message: 'Mínimo 8 caracteres',
+                    },
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password?.message && (
+                <p className="text-sm text-error font-display font-medium">{errors.password.message}</p>
+              )}
+            </div>
 
-            <Input
-              label="Confirmar contraseña"
-              type="password"
-              placeholder="••••••••"
-              {...register('confirmPassword', {
-                required: 'Confirmá tu contraseña',
-                validate: (v) => v === password || 'Las contraseñas no coinciden',
-              })}
-              error={errors.confirmPassword?.message}
-            />
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-display font-medium text-neutral-700">
+                Confirmar contraseña
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className={`input ${errors.confirmPassword?.message ? 'input-error' : ''} pr-10`}
+                  {...register('confirmPassword', {
+                    required: 'Confirmá tu contraseña',
+                    validate: (v) => v === password || 'Las contraseñas no coinciden',
+                  })}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.confirmPassword?.message && (
+                <p className="text-sm text-error font-display font-medium">{errors.confirmPassword.message}</p>
+              )}
+            </div>
 
             <Button type="submit" className="w-full" isLoading={isLoading}>
               Crear cuenta

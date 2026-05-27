@@ -268,6 +268,29 @@ async def get_onboarding_progress(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
+@router.get("/my-businesses")
+async def get_my_businesses(
+    token: str = Depends(get_current_user_token)
+):
+    """
+    Obtiene todos los negocios del usuario autenticado.
+
+    Devuelve una lista de todos los negocios activos del owner.
+    Si no tiene negocios, devuelve una lista vacía.
+    """
+    try:
+        from services.auth_service import auth_service
+        payload = auth_service.verify_token(token)
+        owner_id = payload["sub"]
+
+        from repositories.business_repo import business_repo
+        businesses = business_repo.find_by_owner_id(owner_id)
+
+        return {"businesses": businesses}
+    except AppError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+
+
 @router.get("/my-business")
 async def get_my_business(
     token: str = Depends(get_current_user_token)

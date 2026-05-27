@@ -9,7 +9,7 @@ Plataforma SaaS de agendamiento para negocios que necesitan gestionar citas, tur
 - **Backend:** Python 3.11 + FastAPI
 - **Frontend Panel:** React + Vite + Tailwind CSS (pendiente de implementar)
 - **Widget Reservas:** HTML + CSS + JS vanilla embebible (pendiente)
-- **DB:** PostgreSQL (Supabase)
+- **DB:** PostgreSQL 16 (Docker local + GitHub como fuente de verdad)
 - **Email:** Resend (default) o SMTP configurable
 - **Pagos:** Mercado Pago (plugin)
 - **Deploy:** AWS (pendiente)
@@ -31,6 +31,48 @@ backend/
 └── migrations/              # Migraciones SQL versionadas
 ```
 
+## Sistema de Migraciones
+
+**GitHub es la fuente de verdad del schema** — las migraciones SQL se versionan en el repo y se ejecutan automáticamente en startup.
+
+### Cómo funciona:
+
+1. **Archivos en `backend/migrations/`:** 
+   - `001_create_users.sql`, `002_create_businesses.sql`, etc.
+   - Se ejecutan en orden (por nombre)
+
+2. **Ejecución automática:**
+   - `migrations/run_migrations.py` corre en el evento `startup` de FastAPI
+   - Crea tabla `schema_migrations` para trackear ejecutadas
+   - Solo ejecuta las que faltan (idempotentes)
+
+3. **Workflow:**
+   ```
+   git push → Pull en servidor
+             ↓
+           docker-compose up
+             ↓
+           main.py startup → run_migrations()
+             ↓
+           Nueva BD o BD actualizada
+   ```
+
+### Para agregar una migración nueva:
+
+```bash
+# 1. Crear archivo en backend/migrations/
+# Ej: 008_add_column_to_users.sql
+
+# 2. Escribir SQL (puede tener múltiples statements)
+ALTER TABLE users ADD COLUMN phone TEXT;
+
+# 3. Hacer git push
+# 4. En servidor, simplemente: docker-compose up
+#    Las migraciones corren automáticamente
+```
+
+**Importante:** Todas las migraciones son idempotentes. Pueden correr múltiples veces sin error.
+
 ## Convenciones de código
 
 - **Arquitectura por capas:** router → controller → service → repository → DB
@@ -51,10 +93,14 @@ backend/
 
 ## Estado actual del proyecto
 
-### Implementado (v0.2)
+### Implementado (v0.3)
 - [x] Estructura de carpetas del backend
 - [x] Configuración centralizada (settings.py)
 - [x] Migraciones de base de datos (7 tablas: users, businesses, branches, professionals, services, availability/schedule_blocks, bookings)
+- [x] **Sistema automático de migraciones:**
+  - GitHub como fuente de verdad del schema
+  - `migrations/run_migrations.py` ejecuta pendientes en startup
+  - Tabla `schema_migrations` trackea ejecutadas
 - [x] Middleware de autenticación JWT
 - [x] Handler global de errores
 - [x] Logger centralizado JSON
