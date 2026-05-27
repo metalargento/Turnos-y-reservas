@@ -296,6 +296,49 @@ FRONTEND_URL=https://turnos-y-reservas-4qy2.vercel.app
 
 ---
 
+## 📝 Historiales de Desarrollo (Sesiones 9-17)
+
+### Sesión 9: UX/UI Improvements & TimeSlotSelector
+- Layout de dos columnas en todos los CRUD
+- Nuevo componente `TimeSlotSelector.tsx` con horarios inteligentes
+- Avatares en profesionales, fechas en dd/mm/yyyy, respeto de horarios bloqueados
+
+### Sesión 10: Design System Visual Completo
+- Paleta de colores personalizada (Indigo primario, Emerald acentos)
+- Tipografía: Poppins (display), Lora (body), Fira Code (mono)
+- Sistema de componentes reutilizables (btn, card, input, badge)
+- Documentación en `src/styles/design-system.md`
+
+### Sesión 11: Dashboard Interactivo + Portal de Cliente
+- **Dashboard:** Tabs clickeables (Hoy, Semana, Mes, Canceladas, Clientes)
+- **Portal Cliente:** Nueva página `/mis-reservas/:slug?email=X&phone=Y` sin login
+- Email/teléfono parcialmente ocultos para privacidad
+- 3 tabs: Próximas, Historial, Canceladas
+
+### Sesión 12: Migración a Supabase
+- Base de datos migrada de local a Supabase (nube)
+- Sistema de migraciones automáticas funciona con Connection Pooling
+- Widget público y portal cliente verificados end-to-end con datos en nube
+- SET search_path agregado para compatibilidad
+
+### Sesión 13: Dark Mode + Profesionales Services Fix
+- Dark Mode completamente implementado en todas las páginas
+- **Bug crítico resuelto:** Servicios asignados a profesionales ahora se guardan
+- Backend queries con LEFT JOIN + json_agg para devolver servicios
+- Colores ajustados: neutral-100/200/400 para contraste
+
+### Sesión 14: Dark Mode Refinement
+- Aplicado dark mode a 4 páginas que faltaban (Dashboard, Bookings, Branches, Settings)
+- Patrón consistente: neutral-100 (títulos), -200 (labels), -400 (tertiary)
+- Resultado: ✅ Dark mode 100% en toda la app
+
+### Sesión 17: Email Integration
+- Implementada integración con Resend para emails transaccionales
+- Emails de confirmación y cancelación funcionando
+- Probado con Hotmail y Gmail (problemas de autenticación con SMTP resueltos pivotando a Resend)
+
+---
+
 ## Deuda Técnica
 
 - [ ] Tests (unit + integration)
