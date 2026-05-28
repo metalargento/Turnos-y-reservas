@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-// IMPORTANTE: En producción (Vercel), SIEMPRE usa Fly.io
-// En desarrollo local, puede usar localhost
-// Esto está hardcodeado porque import.meta.env.PROD no es confiable en Vercel
-const API_URL = 'https://turnos-y-reservas.fly.dev';
+// Usa URLs relativas para que Vercel pueda redirigir /api/* a Fly.io
+// En desarrollo, vite.config.ts proxy maneja el rewrite a localhost:8000
+// En producción (Vercel), vercel.json rewrites maneja el rewrite a Fly.io
+const API_URL = '/api';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
