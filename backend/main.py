@@ -57,6 +57,8 @@ class FlexibleCORSMiddleware(BaseHTTPMiddleware):
     """CORS middleware que acepta localhost, vercel.app, y origins configurados."""
 
     async def dispatch(self, request, call_next):
+        from fastapi.responses import Response
+
         origin = request.headers.get("origin", "")
 
         # Orígenes permitidos
@@ -68,6 +70,20 @@ class FlexibleCORSMiddleware(BaseHTTPMiddleware):
             "vercel.app" in origin or
             "localhost" in origin
         )
+
+        # Manejar preflight requests (OPTIONS)
+        if request.method == "OPTIONS":
+            if is_allowed:
+                return Response(
+                    status_code=200,
+                    headers={
+                        "Access-Control-Allow-Origin": origin,
+                        "Access-Control-Allow-Credentials": "true",
+                        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+                        "Access-Control-Allow-Headers": "Authorization, Content-Type",
+                    },
+                )
+            return Response(status_code=200)
 
         response = await call_next(request)
 
