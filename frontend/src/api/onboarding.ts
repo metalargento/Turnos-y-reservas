@@ -13,12 +13,12 @@ import type {
 
 export const onboardingApi = {
   getMyBusinesses: async (): Promise<{ businesses: Business[] }> => {
-    const response = await apiClient.get('onboarding/my-businesses');
+    const response = await apiClient.get('/api/onboarding/my-businesses');
     return response.data;
   },
 
   getMyBusiness: async (): Promise<{ business: Business | null; has_business: boolean }> => {
-    const response = await apiClient.get('onboarding/my-business');
+    const response = await apiClient.get('/api/onboarding/my-business');
     return response.data;
   },
 
@@ -28,7 +28,7 @@ export const onboardingApi = {
   },
 
   step1CreateBusiness: async (data: BusinessStepRequest): Promise<Business & { access_token: string }> => {
-    const response = await apiClient.post('onboarding/step-1', data);
+    const response = await apiClient.post('/api/onboarding/step-1', data);
     return response.data;
   },
 

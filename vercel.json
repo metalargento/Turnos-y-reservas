@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!api|_next/static|.*\\..*).*)$",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
