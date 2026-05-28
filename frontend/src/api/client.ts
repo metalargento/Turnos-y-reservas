@@ -1,7 +1,13 @@
 import axios from 'axios';
 
-// En production, siempre usa Fly.io. En desarrollo, permite localhost
-const API_URL = import.meta.env.PROD
+// Detectar si estamos en Vercel production (no localhost)
+const isVercelProduction = typeof window !== 'undefined' &&
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1';
+
+// En Vercel production o con VITE_API_URL explícito, usa esa URL
+// En localhost dev, usa localhost
+const API_URL = isVercelProduction
   ? 'https://turnos-y-reservas.fly.dev'
   : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
 
