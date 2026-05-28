@@ -115,13 +115,13 @@ async def health_check():
 async def startup_event():
     """Inicializa la aplicación al arrancar."""
     logger.info("Iniciando aplicación...")
-    try:
-        run_migrations()
-        db.connect()
-        logger.info("Aplicación iniciada correctamente")
-    except Exception as e:
-        logger.error(f"Error en startup (continuando): {str(e)}")
-        # Continuar aunque falle para que al menos /health responda
+    # TODO: diagnosticar por qué migraciones/db fallan en Fly.io
+    # try:
+    #     run_migrations()
+    #     db.connect()
+    # except Exception as e:
+    #     logger.error(f"Error en startup: {str(e)}")
+    logger.info("✅ Aplicación iniciada (sin migraciones/BD por diagnosticar)")
 
 
 @app.on_event("shutdown")
