@@ -52,18 +52,38 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
+# Custom CORS middleware que acepta cualquier vercel.app
+class FlexibleCORSMiddleware(BaseHTTPMiddleware):
+    """CORS middleware que acepta localhost, vercel.app, y origins configurados."""
+
+    async def dispatch(self, request, call_next):
+        origin = request.headers.get("origin", "")
+
+        # Orígenes permitidos
+        allowed_origins = settings.allowed_origins.split(",")
+
+        # Verificar si el origen está permitido o es vercel.app
+        is_allowed = (
+            origin in allowed_origins or
+            "vercel.app" in origin or
+            "localhost" in origin
+        )
+
+        response = await call_next(request)
+
+        if is_allowed:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+
+        return response
+
+
 # Middlewares
+app.add_middleware(FlexibleCORSMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
-
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins.split(","),
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
-)
 
 
 # Health check
