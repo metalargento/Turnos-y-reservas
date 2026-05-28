@@ -1,3 +1,3 @@
 #!/bin/bash
-cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+cd /app/backend
+python3 -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}

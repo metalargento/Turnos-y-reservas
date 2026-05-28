@@ -6,6 +6,7 @@ python-multipart==0.0.20
 # Validación y settings
 pydantic==2.10.4
 pydantic-settings==2.7.0
+email-validator==2.1.1
 
 # Autenticación
 python-jose[cryptography]==3.3.0
