@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// En production, siempre usa Fly.io. En desarrollo, permite localhost
+const API_URL = import.meta.env.PROD
+  ? 'https://turnos-y-reservas.fly.dev'
+  : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
 
 export const apiClient = axios.create({
   baseURL: API_URL,
