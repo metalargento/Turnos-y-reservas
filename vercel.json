@@ -1,8 +1,6 @@
 {
-  "buildCommand": "npm --prefix=frontend run build",
+  "buildCommand": "bash build.sh",
   "outputDirectory": "frontend/dist",
-  "devCommand": "npm --prefix=frontend run dev",
-  "installCommand": "npm --prefix=frontend install",
   "rewrites": [
     {
       "source": "/(.*)",
