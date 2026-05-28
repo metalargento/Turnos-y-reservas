@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Use absolute Fly.io URL in production, localhost in development
+// Use Fly.io backend in production, localhost for development
 const API_URL = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8000'
