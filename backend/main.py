@@ -96,10 +96,11 @@ class FlexibleCORSMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# Middlewares (se ejecutan en orden inverso)
-app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
+# Middlewares (se ejecutan en orden inverso al que se agregan)
+# CORS primero, luego seguridad, luego auth
+app.add_middleware(FlexibleCORSMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(FlexibleCORSMiddleware)  # CORS debe ser el primero en ejecutarse
+app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
 
 
 # Health check
