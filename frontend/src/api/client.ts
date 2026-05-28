@@ -1,9 +1,8 @@
 import axios from 'axios';
 
-// Detectar si estamos en desarrollo (Vite dev server o localhost)
-const API_URL = import.meta.env.DEV
-  ? 'http://localhost:8000'
-  : 'https://turnos-y-reservas.fly.dev';
+// Hardcode Fly.io en producción (Vercel siempre es producción)
+// En local dev, Vite proxy en vite.config.ts redirige /api a localhost:8000
+const API_URL = 'https://turnos-y-reservas.fly.dev';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
