@@ -106,7 +106,7 @@ app.add_middleware(FlexibleCORSMiddleware)  # CORS debe ser el primero en ejecut
 @app.get("/health")
 async def health_check():
     """Endpoint de health check para monitoreo."""
-    return {"status": "healthy", "version": "1.0.0"}
+    return {"status": "healthy", "version": "1.0.1"}
 
 
 # Lifecycle events
