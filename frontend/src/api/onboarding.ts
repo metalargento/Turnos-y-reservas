@@ -13,42 +13,42 @@ import type {
 
 export const onboardingApi = {
   getMyBusinesses: async (): Promise<{ businesses: Business[] }> => {
-    const response = await apiClient.get('/api/onboarding/my-businesses');
+    const response = await apiClient.get('onboarding/my-businesses');
     return response.data;
   },
 
   getMyBusiness: async (): Promise<{ business: Business | null; has_business: boolean }> => {
-    const response = await apiClient.get('/api/onboarding/my-business');
+    const response = await apiClient.get('onboarding/my-business');
     return response.data;
   },
 
   getProgress: async (businessId: string): Promise<OnboardingProgress> => {
-    const response = await apiClient.get<OnboardingProgress>(`/api/onboarding/${businessId}/progress`);
+    const response = await apiClient.get<OnboardingProgress>(`onboarding/${businessId}/progress`);
     return response.data;
   },
 
   step1CreateBusiness: async (data: BusinessStepRequest): Promise<Business & { access_token: string }> => {
-    const response = await apiClient.post('/api/onboarding/step-1', data);
+    const response = await apiClient.post('onboarding/step-1', data);
     return response.data;
   },
 
   step2UpdateBrand: async (businessId: string, data: BrandStepRequest): Promise<BrandStepRequest> => {
-    const response = await apiClient.put(`/api/onboarding/step-2/${businessId}`, data);
+    const response = await apiClient.put(`onboarding/step-2/${businessId}`, data);
     return response.data;
   },
 
   step3CreateBranch: async (businessId: string, data: BranchStepRequest): Promise<Branch> => {
-    const response = await apiClient.post(`/api/onboarding/step-3/${businessId}`, data);
+    const response = await apiClient.post(`onboarding/step-3/${businessId}`, data);
     return response.data;
   },
 
   step4CreateServices: async (businessId: string, data: ServicesStepRequest): Promise<{ services: Service[]; count: number }> => {
-    const response = await apiClient.post(`/api/onboarding/step-4/${businessId}`, data);
+    const response = await apiClient.post(`onboarding/step-4/${businessId}`, data);
     return response.data;
   },
 
   step5UpdateAgenda: async (businessId: string, data: AgendaStepRequest): Promise<Business> => {
-    const response = await apiClient.put(`/api/onboarding/step-5/${businessId}`, data);
+    const response = await apiClient.put(`onboarding/step-5/${businessId}`, data);
     return response.data;
   },
 };
