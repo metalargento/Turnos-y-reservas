@@ -53,12 +53,10 @@ export function TimeSlotSelector({ professionalId, value, onChange }: TimeSlotSe
     try {
       const [availResult, blocksResult] = await Promise.all([
         availabilityApi.getAvailability(professionalId),
-        fetch(`/api/schedule-blocks/${professionalId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }).then(r => r.json()),
+        availabilityApi.getScheduleBlocks(professionalId),
       ]);
       setAvailabilities(availResult.data.availabilities);
-      setScheduleBlocks(blocksResult.data?.schedule_blocks || []);
+      setScheduleBlocks(blocksResult.data?.blocks || []);
     } catch (err) {
       console.error('Error cargando disponibilidad:', err);
     } finally {
