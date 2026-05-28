@@ -115,9 +115,13 @@ async def health_check():
 async def startup_event():
     """Inicializa la aplicación al arrancar."""
     logger.info("Iniciando aplicación...")
-    run_migrations()
-    db.connect()
-    logger.info("Aplicación iniciada correctamente")
+    try:
+        run_migrations()
+        db.connect()
+        logger.info("Aplicación iniciada correctamente")
+    except Exception as e:
+        logger.error(f"Error en startup (continuando): {str(e)}")
+        # Continuar aunque falle para que al menos /health responda
 
 
 @app.on_event("shutdown")
