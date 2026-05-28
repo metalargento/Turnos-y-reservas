@@ -4,10 +4,11 @@ import fetch from 'node-fetch';
 const BACKEND_URL = 'https://turnos-y-reservas.fly.dev';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
-  const { path = [] } = req.query;
-  const pathname = Array.isArray(path) ? path.join('/') : path;
+  const { path = '' } = req.query;
+  const pathname = Array.isArray(path) ? path.join('/') : (path || '');
 
-  const targetUrl = `${BACKEND_URL}/${pathname}`;
+  // Construct target URL: /api/proxy?path=auth/login -> /api/auth/login
+  const targetUrl = `${BACKEND_URL}/api/${pathname}`;
 
   try {
     const response = await fetch(targetUrl, {
