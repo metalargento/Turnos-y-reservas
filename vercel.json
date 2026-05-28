@@ -6,5 +6,6 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "_buildAt": "2026-05-28T17:15:00Z"
 }
