@@ -250,6 +250,8 @@ class PublicBookingController:
         Crear una reserva pública sin autenticación.
         Valida anticipación mínima, conflictos de horario y bloqueos.
         """
+        logger.info(f"DEBUG: Recibido starts_at={starts_at}, ends_at={ends_at}")
+
         business = business_repo.find_by_slug(slug)
         if not business:
             raise AppError(
@@ -308,6 +310,7 @@ class PublicBookingController:
         # Validar conflictos (usar ISO strings normalizados)
         starts_iso = starts_dt.isoformat() if starts_dt else starts_at
         ends_iso = ends_dt.isoformat() if ends_dt else ends_at
+        logger.info(f"DEBUG: Después normalización: starts_iso={starts_iso}, ends_iso={ends_iso}")
         conflicts = booking_repo.find_conflicts(professional_id, starts_iso, ends_iso)
         if conflicts:
             raise AppError(
