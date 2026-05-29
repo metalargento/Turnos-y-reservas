@@ -5,7 +5,7 @@
  */
 import axios, { AxiosInstance } from 'axios';
 
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const baseURL = import.meta.env.VITE_API_URL || 'https://turnos-y-reservas.onrender.com';
 
 const publicClient: AxiosInstance = axios.create({
   baseURL,
