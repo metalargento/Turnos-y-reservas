@@ -29,7 +29,7 @@ from migrations.run_migrations import run_migrations
 app = FastAPI(
     title="Sistema de Turnos y Reservas",
     description="API para gestión de turnos y reservas de negocios",
-    version="1.0.0"
+    version="1.0.1"
 )
 
 # Registrar handler global de errores
