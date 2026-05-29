@@ -308,10 +308,13 @@ class PublicBookingController:
                 status_code=400,
             )
 
-        # Usar ISO strings normalizados en Argentina time
-        starts_iso = starts_dt.isoformat()
-        ends_iso = ends_dt.isoformat() if ends_dt else starts_iso
-        logger.info(f"DEBUG: Después normalización: starts_iso={starts_iso}, ends_iso={ends_iso}")
+        # Convertir a UTC para guardar en la BD (PostgreSQL siempre usa UTC internamente)
+        starts_utc = starts_dt.astimezone(tz=__import__('datetime').timezone.utc)
+        ends_utc = ends_dt.astimezone(tz=__import__('datetime').timezone.utc) if ends_dt else None
+
+        starts_iso = starts_utc.isoformat()
+        ends_iso = ends_utc.isoformat() if ends_utc else starts_iso
+        logger.info(f"DEBUG: Argentina time: {starts_dt}, UTC time: {starts_iso}")
         conflicts = booking_repo.find_conflicts(professional_id, starts_iso, ends_iso)
         if conflicts:
             raise AppError(
