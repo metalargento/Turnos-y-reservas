@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: turnos-y-reservas
+    runtime: python-3.11
+    buildCommand: bash build.sh
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        value: your-secret-key-min-32-characters-long-for-signing-dev
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres
+      - key: JWT_SECRET
+        value: your-jwt-secret-min-32-characters-long-dev
+      - key: JWT_EXPIRATION_MINUTES
+        value: "60"
+      - key: REFRESH_TOKEN_EXPIRATION_DAYS
+        value: "30"
+      - key: RESEND_API_KEY
+        value: re_WsxpkpsR_DefTF3dfVbpSqGaGskFAiFCH
+      - key: EMAIL_FROM
+        value: onboarding@resend.dev
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+      - key: ALLOWED_ORIGINS
+        value: https://turnos-y-reservas-4qy2.vercel.app,http://localhost:5173
+      - key: FRONTEND_URL
+        value: https://turnos-y-reservas-4qy2.vercel.app
+      - key: RESERVAS_DOMAIN
+        value: https://turnos-y-reservas-4qy2.vercel.app
