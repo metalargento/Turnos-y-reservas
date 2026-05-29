@@ -276,18 +276,27 @@ class PublicBookingController:
                 status_code=404,
             )
 
-        # Validar anticipación mínima
+        # Parsear y normalizar SIEMPRE a Argentina time
         try:
-            starts_dt = datetime.fromisoformat(starts_at)
-            # Si no tiene zona horaria, asumir Argentina
-            if starts_dt.tzinfo is None:
-                starts_dt = starts_dt.replace(tzinfo=TZ_AR)
+            # Parsear el ISO string (puede tener o no zona horaria)
+            dt = datetime.fromisoformat(starts_at)
+            # Extraer solo fecha y hora, ignorar zona horaria original
+            naive_dt = dt.replace(tzinfo=None)
+            # Re-aplicar Argentina time
+            starts_dt = naive_dt.replace(tzinfo=TZ_AR)
         except (ValueError, TypeError):
             raise AppError(
                 message="Formato de fecha inválido",
                 code="INVALID_DATE",
                 status_code=400,
             )
+
+        try:
+            dt_end = datetime.fromisoformat(ends_at)
+            naive_dt_end = dt_end.replace(tzinfo=None)
+            ends_dt = naive_dt_end.replace(tzinfo=TZ_AR)
+        except (ValueError, TypeError):
+            ends_dt = None
 
         now = datetime.now(tz=TZ_AR)
         min_advance = timedelta(hours=business.get("min_advance_hours", 0))
@@ -299,17 +308,9 @@ class PublicBookingController:
                 status_code=400,
             )
 
-        # Normalizar ends_at también
-        try:
-            ends_dt = datetime.fromisoformat(ends_at)
-            if ends_dt.tzinfo is None:
-                ends_dt = ends_dt.replace(tzinfo=TZ_AR)
-        except (ValueError, TypeError):
-            ends_dt = None
-
-        # Validar conflictos (usar ISO strings normalizados)
-        starts_iso = starts_dt.isoformat() if starts_dt else starts_at
-        ends_iso = ends_dt.isoformat() if ends_dt else ends_at
+        # Usar ISO strings normalizados en Argentina time
+        starts_iso = starts_dt.isoformat()
+        ends_iso = ends_dt.isoformat() if ends_dt else starts_iso
         logger.info(f"DEBUG: Después normalización: starts_iso={starts_iso}, ends_iso={ends_iso}")
         conflicts = booking_repo.find_conflicts(professional_id, starts_iso, ends_iso)
         if conflicts:
