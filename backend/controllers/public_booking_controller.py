@@ -277,6 +277,9 @@ class PublicBookingController:
         # Validar anticipación mínima
         try:
             starts_dt = datetime.fromisoformat(starts_at)
+            # Si no tiene zona horaria, asumir Argentina
+            if starts_dt.tzinfo is None:
+                starts_dt = starts_dt.replace(tzinfo=TZ_AR)
         except (ValueError, TypeError):
             raise AppError(
                 message="Formato de fecha inválido",
@@ -294,8 +297,18 @@ class PublicBookingController:
                 status_code=400,
             )
 
-        # Validar conflictos
-        conflicts = booking_repo.find_conflicts(professional_id, starts_at, ends_at)
+        # Normalizar ends_at también
+        try:
+            ends_dt = datetime.fromisoformat(ends_at)
+            if ends_dt.tzinfo is None:
+                ends_dt = ends_dt.replace(tzinfo=TZ_AR)
+        except (ValueError, TypeError):
+            ends_dt = None
+
+        # Validar conflictos (usar ISO strings normalizados)
+        starts_iso = starts_dt.isoformat() if starts_dt else starts_at
+        ends_iso = ends_dt.isoformat() if ends_dt else ends_at
+        conflicts = booking_repo.find_conflicts(professional_id, starts_iso, ends_iso)
         if conflicts:
             raise AppError(
                 message="Este horario ya está ocupado",
@@ -305,7 +318,7 @@ class PublicBookingController:
 
         # Validar bloqueos
         overlapping_blocks = schedule_blocks_repo.find_overlapping(
-            professional_id, starts_at, ends_at
+            professional_id, starts_iso, ends_iso
         )
         if overlapping_blocks:
             raise AppError(
@@ -314,7 +327,7 @@ class PublicBookingController:
                 status_code=400,
             )
 
-        # Crear reserva
+        # Crear reserva con horarios normalizados
         confirmation_token = secrets.token_urlsafe(32)
         booking = booking_repo.create(
             business_id=business["id"],
@@ -325,8 +338,8 @@ class PublicBookingController:
             client_email=client_email,
             client_phone=client_phone,
             client_notes=client_notes,
-            starts_at=starts_at,
-            ends_at=ends_at,
+            starts_at=starts_iso,
+            ends_at=ends_iso,
             confirmation_token=confirmation_token,
             payment_required=False,
             payment_amount=None,
