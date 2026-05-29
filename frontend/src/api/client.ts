@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Hardcode Fly.io en producción (Vercel siempre es producción)
+// Hardcode Render en producción (Vercel siempre es producción)
 // En local dev, Vite proxy en vite.config.ts redirige /api a localhost:8000
-const API_URL = 'https://turnos-y-reservas.fly.dev';
+const API_URL = 'https://turnos-y-reservas.onrender.com';
 
 export const apiClient = axios.create({
   baseURL: API_URL,

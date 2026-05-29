@@ -1,7 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import fetch from 'node-fetch';
 
-const BACKEND_URL = 'https://turnos-y-reservas.fly.dev';
+const BACKEND_URL = 'https://turnos-y-reservas.onrender.com';
 
 export default async (req: VercelRequest, res: VercelResponse) => {
   const { path = '' } = req.query;
