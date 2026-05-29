@@ -250,6 +250,8 @@ class PublicBookingController:
         Crear una reserva pública sin autenticación.
         Valida anticipación mínima, conflictos de horario y bloqueos.
         """
+        print(f"\n=== BOOKING DEBUG ===", flush=True)
+        print(f"Recibido (raw): starts_at='{starts_at}'", flush=True)
         logger.info(f"DEBUG: Recibido starts_at={starts_at}, ends_at={ends_at}")
 
         business = business_repo.find_by_slug(slug)
@@ -314,6 +316,9 @@ class PublicBookingController:
 
         starts_iso = starts_utc.isoformat()
         ends_iso = ends_utc.isoformat() if ends_utc else starts_iso
+
+        print(f"Parsed (AR): {starts_dt}", flush=True)
+        print(f"Converted (UTC): {starts_iso}", flush=True)
         logger.info(f"DEBUG: Argentina time: {starts_dt}, UTC time: {starts_iso}")
         conflicts = booking_repo.find_conflicts(professional_id, starts_iso, ends_iso)
         if conflicts:
