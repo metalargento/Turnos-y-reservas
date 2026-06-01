@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
-import { Button, Input, Card, CardContent, Alert, Stepper } from '../components/ui';
+import { Button, Input, Card, CardContent, Alert, Stepper, ImageUploader } from '../components/ui';
 import { onboardingApi } from '../api/onboarding';
+import { uploadApi } from '../api/upload';
 import { useAuth } from '../contexts/AuthContext';
 import type {
   BusinessStepRequest,
@@ -27,6 +28,7 @@ export function OnboardingPage() {
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
 
   useEffect(() => {
     loadExistingBusiness();
@@ -194,11 +196,23 @@ export function OnboardingPage() {
               <p className="text-gray-500">Personalizá cómo se verá tu negocio</p>
             </div>
             <form onSubmit={step2Form.handleSubmit(handleStep2)} className="space-y-4">
-              <Input
-                label="URL del logo (opcional)"
-                placeholder="https://ejemplo.com/logo.png"
-                {...step2Form.register('logo_url')}
-              />
+              {businessId && (
+                <ImageUploader
+                  label="Logo del negocio (opcional)"
+                  value={step2Form.watch('logo_url')}
+                  onChange={(url) => step2Form.setValue('logo_url', url)}
+                  onUpload={async (file) => {
+                    setLogoUploading(true);
+                    try {
+                      const url = await uploadApi.uploadLogo(businessId, file);
+                      return url;
+                    } finally {
+                      setLogoUploading(false);
+                    }
+                  }}
+                  isLoading={logoUploading}
+                />
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Color primario"

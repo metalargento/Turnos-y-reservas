@@ -16,6 +16,10 @@ bcrypt==4.2.1
 # Base de datos
 psycopg2-binary==2.9.10
 
+# Supabase Storage
+supabase==2.4.1
+python-magic==0.4.27
+
 # Email transaccional
 resend==2.4.0
 

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Button, Input, Alert } from '../components/ui';
+import { Card, CardContent, Button, Input, Alert, ImageUploader } from '../components/ui';
 import { useBusinessContext } from '../contexts/BusinessContext';
 import { onboardingApi } from '../api/onboarding';
 import { businessApi } from '../api/business';
+import { uploadApi } from '../api/upload';
 
 export function SettingsPage() {
   const { activeBusiness, isLoading: businessLoading, refreshBusiness } = useBusinessContext();
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -226,12 +228,23 @@ export function SettingsPage() {
         <CardContent className="space-y-4">
           <h3 className="font-semibold text-lg dark:text-neutral-100">Marca</h3>
 
-          <Input
-            label="Logo URL"
-            placeholder="https://example.com/logo.png"
-            value={brandForm.logo_url}
-            onChange={(e) => setBrandForm({ ...brandForm, logo_url: e.target.value })}
-          />
+          {activeBusiness && (
+            <ImageUploader
+              label="Logo"
+              value={brandForm.logo_url}
+              onChange={(url) => setBrandForm({ ...brandForm, logo_url: url })}
+              onUpload={async (file) => {
+                setLogoUploading(true);
+                try {
+                  const url = await uploadApi.uploadLogo(activeBusiness.id, file);
+                  return url;
+                } finally {
+                  setLogoUploading(false);
+                }
+              }}
+              isLoading={logoUploading}
+            />
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
