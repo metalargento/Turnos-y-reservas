@@ -140,13 +140,17 @@ class DashboardRepository:
         return [dict(r) for r in results] if results else []
 
     def get_unique_clients(self, business_id: str) -> List[Dict[str, Any]]:
-        """Obtiene lista de todos los clientes únicos (base de datos de clientes)."""
+        """Obtiene lista de todos los clientes únicos (por email) - base de datos de clientes."""
         query = """
-            SELECT DISTINCT b.client_email, b.client_name, b.client_phone,
-                   COUNT(*) OVER (PARTITION BY b.client_email) AS booking_count
+            SELECT
+              b.client_email,
+              MAX(b.client_name) AS client_name,
+              MAX(b.client_phone) AS client_phone,
+              COUNT(*) AS booking_count
             FROM bookings b
             WHERE b.business_id = %s
-            ORDER BY booking_count DESC, b.client_name ASC
+            GROUP BY b.client_email
+            ORDER BY booking_count DESC, client_name ASC
         """
         results = db.execute_query(query, (business_id,))
         return [dict(r) for r in results] if results else []

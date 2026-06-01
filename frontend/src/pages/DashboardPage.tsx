@@ -157,12 +157,12 @@ export function DashboardPage() {
       </div>
 
       {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4 auto-rows-max">
         {statCards.map((stat) => (
           <button
             key={stat.id}
             onClick={() => setSelectedTab(stat.id)}
-            className={`p-2 md:p-4 text-center rounded-lg border transition-all ${
+            className={`p-2 md:p-4 text-center rounded-lg border transition-all h-full ${
               selectedTab === stat.id
                 ? 'border-2 border-black bg-black/5 shadow-md'
                 : `${stat.bgColor} border border-transparent hover:shadow-md`
@@ -184,9 +184,9 @@ export function DashboardPage() {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
-            {selectedTab !== 'upcoming' && (
+            {selectedTab !== 'upcoming' && selectedTab !== 'clients' && (
               <Link
-                to={selectedTab === 'clients' ? '/professionals' : '/bookings'}
+                to="/bookings"
                 className="text-sm text-blue-600 hover:text-blue-800"
               >
                 Ver todas
