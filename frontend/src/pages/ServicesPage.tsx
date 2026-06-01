@@ -158,7 +158,7 @@ export function ServicesPage() {
               services.map((service) => (
                 <Card key={service.id}>
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-start gap-4">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-neutral-100">
                           {service.name}
@@ -172,7 +172,7 @@ export function ServicesPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex gap-2 w-full md:w-auto md:flex-shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
