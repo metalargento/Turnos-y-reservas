@@ -181,7 +181,7 @@ export function DashboardPage() {
 
       {/* Panel de datos según tab seleccionado */}
       <Card key={selectedTab}>
-        <CardContent className="p-6 overflow-hidden">
+        <CardContent className="p-6 overflow-hidden max-h-[500px] md:max-h-[600px] overflow-y-auto">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
             {selectedTab !== 'upcoming' && selectedTab !== 'clients' && (
