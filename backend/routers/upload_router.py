@@ -11,6 +11,18 @@ from utils.errors import AppError
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
 
+@router.get("/debug/health")
+async def upload_health_check():
+    """Debug endpoint para verificar que Supabase Storage está configurado."""
+    from config.settings import settings
+
+    return {
+        "supabase_url_configured": bool(settings.supabase_url),
+        "supabase_key_configured": bool(settings.supabase_key),
+        "message": "OK" if settings.supabase_url and settings.supabase_key else "Missing Supabase credentials"
+    }
+
+
 @router.post("/logo")
 async def upload_logo(
     request: Request,
