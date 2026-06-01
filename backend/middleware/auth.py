@@ -17,6 +17,7 @@ PUBLIC_ROUTES = [
     "/api/auth/refresh",
     "/api/auth/verify-token",
     "/public",  # Todos los endpoints bajo /public son públicos (bookings)
+    "/api/upload/debug",  # Debug endpoints para diagnosticar issues
 ]
 
 
