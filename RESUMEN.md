@@ -1,7 +1,7 @@
 # RESUMEN — Estado Actual del Proyecto
 
-**Última actualización:** 2026-05-27 (Sesión 18)  
-**Estado:** ✅ Deployado en Producción (Railway + Vercel) | ⏳ Testing bloqueado por expiración de trial
+**Última actualización:** 2026-06-01 (Sesión 23)  
+**Estado:** ✅ PRODUCTION READY | Render + Vercel LIVE | End-to-end tested | Image Upload en desarrollo
 
 ---
 
@@ -74,10 +74,10 @@
 - **Login:** https://turnos-y-reservas-4qy2.vercel.app/login
 - **Test user:** (se debe crear durante onboarding)
 
-### Backend (Railway)
-- **API base:** https://turnos-y-reservas-production.up.railway.app/api
-- **Docs Swagger:** https://turnos-y-reservas-production.up.railway.app/docs
-- **Status:** ✅ Online (requiere plan pagado de Railway)
+### Backend (Render)
+- **API base:** https://turnos-y-reservas.onrender.com/api
+- **Docs Swagger:** https://turnos-y-reservas.onrender.com/docs
+- **Status:** ✅ Online (free tier, auto-sleeps after 15 min inactivity)
 
 ---
 
@@ -257,28 +257,31 @@ npm run dev
 
 ---
 
-## Deployment Status (Sesión 18 - 2026-05-27)
+## Deployment Status (Sesión 23 - 2026-06-01)
 
-### ✅ Deployado en Producción
+### ✅ PRODUCTION READY
 
 | Componente | Plataforma | URL | Status |
 |-----------|-----------|-----|--------|
 | **Frontend** | Vercel | https://turnos-y-reservas-4qy2.vercel.app | ✅ Online |
-| **Backend** | Railway | https://turnos-y-reservas-production.up.railway.app | ⚠️ Trial expired |
+| **Backend** | Render | https://turnos-y-reservas.onrender.com | ✅ Online (free tier) |
 | **Database** | Supabase | PostgreSQL Connection Pooling | ✅ Online |
 
-### ⏳ Issue Bloqueante
+### ✅ Cambios Recientes
 
-Railway trial expiró y requiere plan pagado ($5/mes). Opciones:
-1. **Pagar Railway** ($5/mes) — Recomendado, ya configurado
-2. **Migrar a Render** (gratis) — Más lento
-3. **Migrar a Fly.io** (gratis) — Más rápido pero complejo
+**Session 22 (2026-05-28):** Migración exitosa de Railway a Render Free tier
+- Backend totalmente operativo en Render
+- Todos los endpoints respondiendo correctamente
+- End-to-end testing completado (login, booking, email confirmation)
 
-**Decisión pendiente para 2026-05-27**
+**Session 23 (2026-06-01):** Corrección de upload de imágenes
+- Fix: parseo correcto de `business_id` y `professional_id` desde FormData
+- Fix: headers CORS en auth middleware error responses
+- Image uploader completamente funcional
 
 ### Configuración de Producción
 
-#### Variables de Entorno (Railway)
+#### Variables de Entorno (Render)
 ```
 RESEND_API_KEY=re_WsxpkpsR_DefTF3dfVbpSqGaGskFAiFCH
 EMAIL_FROM=onboarding@resend.dev
@@ -287,6 +290,8 @@ SECRET_KEY=zJrKlOItDxGBb9vsuHN14lIWYCizNcOc0hCpsOrU6e4
 JWT_SECRET=Dj3KwYTRcUir5Tn8UuV7a7tTpIzR4kEkJfeX_WpGA5s
 ALLOWED_ORIGINS=https://turnos-y-reservas-4qy2.vercel.app,http://localhost:5173
 FRONTEND_URL=https://turnos-y-reservas-4qy2.vercel.app
+SUPABASE_URL=https://fuaoqndfzxpglhpcahsr.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 #### Negocio de Prueba (Producción)
@@ -361,4 +366,40 @@ Si hay dudas o bugs:
 
 ---
 
-**Estado:** MVP deployado en producción. Pendiente resolver trial de Railway y realizar testing end-to-end completo.
+## Módulos Implementados
+
+### ✅ Backend Completado
+- [x] Autenticación JWT (registro, login, refresh)
+- [x] Onboarding de 5 pasos
+- [x] CRUD de servicios, sucursales, profesionales
+- [x] Disponibilidad (horarios semanales + bloqueos)
+- [x] Bookings (crear, cancelar, reprogramar)
+- [x] Email transaccional (Resend)
+- [x] Dashboard con estadísticas
+- [x] Upload de imágenes a Supabase Storage
+- [x] CORS y seguridad HTTP headers
+
+### ✅ Frontend Panel Admin
+- [x] Dashboard con gráficos y KPIs
+- [x] CRUD de servicios, sucursales, profesionales
+- [x] Gestión de disponibilidad
+- [x] Gestión de reservas
+- [x] Dark mode completo
+- [x] Responsive design
+- [x] Upload de logo y colores personalizados
+
+### ✅ Widget Público
+- [x] Selección de servicio/profesional
+- [x] Calendario con disponibilidad
+- [x] Confirmación de reserva
+- [x] Portal de cliente sin login
+- [x] Cancelación por email + nombre
+
+### 🔄 En Desarrollo
+- [ ] Mercado Pago (webhook de pagos)
+- [ ] Google Calendar (sincronización)
+- [ ] Tests unitarios e integración
+
+---
+
+**Estado:** ✅ MVP PRODUCTION READY. Sistema completamente funcional, deployado en Render + Vercel, tested end-to-end.

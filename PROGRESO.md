@@ -2614,3 +2614,153 @@ Utilizamos este esquema de colores en todas las páginas:
 ---
 
 *Última actualización: 2026-05-26 (Sesión 14 - Dark Mode Completo para todas las páginas)*
+
+---
+
+## Sesión 15: Availability Module - Disponibilidad de Profesionales
+
+Se implementó el módulo completo de disponibilidad permitiendo que profesionales definan:
+- Horarios regulares semanales (lunes-domingo, hora inicio/fin)
+- Bloqueos manuales (vacaciones, feriados, días cerrados)
+
+Backend: endpoints GET/POST/PUT para availability y schedule_blocks
+Frontend: AvailabilityPage con dos tabs (horarios semanales y bloqueos)
+
+Características:
+✅ CRUD de disponibilidad semanal
+✅ CRUD de bloqueos por fecha
+✅ Selección de profesional desde dropdown
+✅ Prevención de duplicados en horarios semanales
+✅ Error handling completo
+
+---
+
+## Sesión 16: Email Integration - Confirmaciones y Cancelaciones
+
+Integración completa con Resend para envío automático de emails transaccionales:
+- Email de confirmación cuando se crea una reserva
+- Email de cancelación cuando se cancela
+- Fallback a SMTP si Resend no está configurado
+
+Backend: integration/resend_service.py con métodos:
+- send_booking_confirmation()
+- send_booking_cancellation()
+- send_reminder_email() (estructura preparada)
+
+Verificado con Gmail y Hotmail. Resend es el método preferido.
+
+---
+
+## Sesión 17: SMTP Debugging & Email Service Improvements
+
+Investigación profunda en autenticación SMTP. Identificado:
+- Bug crítico en business_repo con password SMTP
+- Gmail requiere contraseña de aplicación (no password normal)
+- Resend es más confiable que SMTP para producción
+
+Backend fixes:
+- Corrección en actualización de campos SMTP
+- Mejora en encriptación de passwords SMTP
+
+Decisión: Pivotear a Resend como servicio principal de email.
+
+---
+
+## Sesión 18: Deployment - Railway + Vercel
+
+Deployment exitoso del MVP en producción:
+- Backend: Railway (https://turnos-y-reservas-production.up.railway.app)
+- Frontend: Vercel (https://turnos-y-reservas-4qy2.vercel.app)
+- Database: Supabase PostgreSQL (Production)
+
+Cambios:
+- Creación de start.sh para Railway buildpack
+- Configuración de variables de entorno en Railway
+- Limpieza de datos de prueba duplicados
+- Corrección de TypeScript errors
+
+⚠️ Bloqueador: Railway free trial expiró, requiere plan pagado ($5/mes)
+
+---
+
+## Sesión 19: Migración a Fly.io Free Tier
+
+Migración del backend de Railway a Fly.io para evitar pago:
+- Creación de app en Fly.io (chia-seasoning-4508)
+- Configuración de secrets y variables de entorno
+- Deploy inicial exitoso
+
+⏳ Esperando verificación de health en producción
+
+---
+
+## Sesión 20: Fly.io Fixes & Vercel Deployment
+
+Fix de restart loop en Fly.io:
+- Problema: start.sh no era ejecutable (archivo Python ejecutando sh)
+- Solución: Usar uvicorn directamente en Procfile
+- Email validation issue: instalación de email-validator package
+
+Backend: Operativo en Fly.io
+Frontend: Operativo en Vercel
+
+---
+
+## Sesión 21: CORS Fixes en Fly.io
+
+Identificación de problemas en routing:
+- Frontend en Vercel no podía comunicarse con Fly.io backend
+- Problema raíz: variable de entorno RENDER_URL en lugar de ONRENDER_URL
+
+Fix:
+- Actualización de publicClient URL configuration
+- Vercel frontend ahora comunica correctamente con Fly.io
+
+---
+
+## Sesión 22: Migración a Render + Vercel (PRODUCTION READY)
+
+Migración final de Fly.io a Render (rendimiento mejorado):
+- Backend: https://turnos-y-reservas.onrender.com
+- Frontend: https://turnos-y-reservas-4qy2.vercel.app
+
+Logros:
+✅ End-to-end testing completado
+✅ Login funcional
+✅ Booking flow completo
+✅ Email confirmations funcionales
+✅ Portal de cliente operativo
+✅ Dashboard con estadísticas
+
+Estado: PRODUCTION READY (2026-05-28)
+
+---
+
+## Sesión 23: Image Upload & CORS Middleware Fixes
+
+Implementación de upload de imágenes con Supabase Storage + correcciones CORS:
+
+Backend:
+- Creación de upload_router.py con endpoints `/api/upload/logo` y `/api/upload/avatar`
+- Integración con Supabase Storage service
+- Fix crítico: parseo correcto de business_id y professional_id desde FormData (cambio a Form())
+- Fix CORS: Headers Access-Control-Allow-Origin agregados en auth_middleware para error responses
+
+Frontend:
+- Nuevo componente ImageUploader.tsx
+- Integración en DashboardPage para logo del negocio
+- Integración en OnboardingPage
+- Integración en SettingsPage
+
+Características:
+✅ Upload de imágenes a Supabase Storage
+✅ Actualización de logo en negocio
+✅ Display de logo en dashboard header
+✅ CORS funcionando en Render + Vercel
+✅ FormData parsing correcto
+
+Estado: Image upload completamente funcional (2026-06-01)
+
+---
+
+*Última actualización: 2026-06-01 (Sesión 23 - Image Upload & CORS Fixes)*
