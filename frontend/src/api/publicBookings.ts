@@ -94,17 +94,17 @@ export const publicBookingsApi = {
 
   /**
    * GET /public/bookings/{slug}/my-bookings
-   * Obtener todas las reservas de un cliente (email + teléfono).
+   * Obtener todas las reservas de un cliente (email + teléfono opcional).
    */
   getClientBookings: (
     slug: string,
     email: string,
-    phone: string,
+    phone?: string,
   ) =>
     publicClient.get<{ bookings: Booking[] }>(
       `/public/bookings/${slug}/my-bookings`,
       {
-        params: { email, phone },
+        params: { email, ...(phone && { phone }) },
       },
     ),
 };

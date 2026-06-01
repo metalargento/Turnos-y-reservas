@@ -30,9 +30,9 @@ export function PublicCancelPage() {
         throw new Error('Por favor completa todos los campos');
       }
 
-      const result = await publicBookingsApi.getClientBookings(slug, clientEmail, undefined);
-      const upcomingBookings = result.bookings.filter(
-        (b) => b.status === 'confirmed' && new Date(b.starts_at) > new Date()
+      const result = await publicBookingsApi.getClientBookings(slug, clientEmail);
+      const upcomingBookings = result.data.bookings.filter(
+        (b: any) => b.status === 'confirmed' && new Date(b.starts_at) > new Date()
       );
 
       if (upcomingBookings.length === 0) {
