@@ -1,5 +1,5 @@
 """Endpoints para upload de imágenes (logos y avatares)."""
-from fastapi import APIRouter, File, UploadFile, HTTPException, Request
+from fastapi import APIRouter, File, UploadFile, HTTPException, Request, Form
 from uuid import UUID
 from integrations.supabase_storage import get_storage_service
 from repositories.business_repo import BusinessRepository
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api/upload", tags=["upload"])
 async def upload_logo(
     request: Request,
     file: UploadFile = File(...),
-    business_id: str = None,
+    business_id: str = Form(...),
 ) -> UploadResponse:
     """Sube logo de negocio. Solo el dueño del negocio puede subir."""
     current_user = request.state.user
@@ -62,7 +62,7 @@ async def upload_logo(
 async def upload_avatar(
     request: Request,
     file: UploadFile = File(...),
-    professional_id: str = None,
+    professional_id: str = Form(...),
 ) -> UploadResponse:
     """Sube avatar de profesional. Solo el profesional o dueño del negocio puede subir."""
     current_user = request.state.user
