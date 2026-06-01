@@ -172,7 +172,7 @@ export function ServicesPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2 w-full md:w-auto md:flex-shrink-0">
+                      <div className="flex flex-col gap-2 w-full md:w-auto md:flex-shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
@@ -180,6 +180,7 @@ export function ServicesPage() {
                             setFormData(service);
                             setEditingId(service.id);
                           }}
+                          className="w-full md:w-auto"
                         >
                           Editar
                         </Button>
@@ -187,6 +188,7 @@ export function ServicesPage() {
                           size="sm"
                           variant="danger"
                           onClick={() => handleDelete(service.id)}
+                          className="w-full md:w-auto"
                         >
                           Eliminar
                         </Button>

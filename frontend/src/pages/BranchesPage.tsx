@@ -151,7 +151,7 @@ export function BranchesPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2 w-full md:w-auto md:flex-shrink-0">
+                      <div className="flex flex-col gap-2 w-full md:w-auto md:flex-shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
@@ -159,6 +159,7 @@ export function BranchesPage() {
                             setFormData(branch);
                             setEditingId(branch.id);
                           }}
+                          className="w-full md:w-auto"
                         >
                           Editar
                         </Button>
@@ -166,6 +167,7 @@ export function BranchesPage() {
                           size="sm"
                           variant="danger"
                           onClick={() => handleDelete(branch.id)}
+                          className="w-full md:w-auto"
                         >
                           Eliminar
                         </Button>
