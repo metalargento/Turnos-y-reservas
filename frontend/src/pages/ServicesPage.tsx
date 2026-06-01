@@ -72,7 +72,7 @@ export function ServicesPage() {
 
       {error && <Alert variant="error">{error}</Alert>}
 
-      <div className="grid grid-cols-3 gap-6 min-h-screen">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen">
         {/* Columna Izquierda: Formulario */}
         <div className="col-span-1">
           <Card className="sticky top-6">
