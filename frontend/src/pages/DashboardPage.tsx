@@ -214,8 +214,8 @@ export function DashboardPage() {
                             {client.client_phone && <span> • {client.client_phone}</span>}
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                        <div className="text-right flex-shrink-0">
+                          <div className="px-2 py-1 md:px-3 bg-indigo-100 text-indigo-700 rounded-full text-xs md:text-sm font-medium whitespace-nowrap">
                             {client.booking_count} {client.booking_count === 1 ? 'reserva' : 'reservas'}
                           </div>
                         </div>
