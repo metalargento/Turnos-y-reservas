@@ -280,12 +280,13 @@ class PublicBookingController:
 
         # Parsear y normalizar SIEMPRE a Argentina time
         try:
-            # Parsear el ISO string (puede tener o no zona horaria)
             dt = datetime.fromisoformat(starts_at)
-            # Extraer solo fecha y hora, ignorar zona horaria original
-            naive_dt = dt.replace(tzinfo=None)
-            # Re-aplicar Argentina time
-            starts_dt = naive_dt.replace(tzinfo=TZ_AR)
+            if dt.tzinfo is None:
+                # Si es naive, asumir que es Argentina
+                starts_dt = dt.replace(tzinfo=TZ_AR)
+            else:
+                # Si tiene zona horaria, convertir a Argentina
+                starts_dt = dt.astimezone(TZ_AR)
         except (ValueError, TypeError):
             raise AppError(
                 message="Formato de fecha inválido",
@@ -295,8 +296,10 @@ class PublicBookingController:
 
         try:
             dt_end = datetime.fromisoformat(ends_at)
-            naive_dt_end = dt_end.replace(tzinfo=None)
-            ends_dt = naive_dt_end.replace(tzinfo=TZ_AR)
+            if dt_end.tzinfo is None:
+                ends_dt = dt_end.replace(tzinfo=TZ_AR)
+            else:
+                ends_dt = dt_end.astimezone(TZ_AR)
         except (ValueError, TypeError):
             ends_dt = None
 
