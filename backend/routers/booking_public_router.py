@@ -166,7 +166,7 @@ async def create_public_booking(
 async def get_client_bookings(
     slug: str,
     email: str = Query(..., description="Email del cliente"),
-    phone: str = Query(..., description="Teléfono del cliente"),
+    phone: str | None = Query(None, description="Teléfono del cliente (opcional)"),
 ):
     """
     Obtener todas las reservas de un cliente (próximas + historial).
