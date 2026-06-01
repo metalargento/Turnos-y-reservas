@@ -72,24 +72,37 @@ async def auth_middleware(request: Request, call_next):
     if is_public_route(request.url.path):
         return await call_next(request)
 
+    # Helper para agregar headers CORS a respuesta de error
+    def add_cors_headers(response, origin):
+        if "vercel.app" in origin or "localhost" in origin:
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+            response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
+        return response
+
+    origin = request.headers.get("origin", "")
+
     # Obtener token del header
     auth_header = request.headers.get("Authorization", "")
     token = auth_header.replace("Bearer ", "") if auth_header.startswith("Bearer ") else ""
 
     if not token:
-        return JSONResponse(
+        response = JSONResponse(
             status_code=401,
             content={"error": True, "message": "No autorizado", "code": "MISSING_TOKEN"}
         )
+        return add_cors_headers(response, origin)
 
     # Verificar token
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
         request.state.user = payload
     except JWTError:
-        return JSONResponse(
+        response = JSONResponse(
             status_code=401,
             content={"error": True, "message": "No autorizado", "code": "INVALID_TOKEN"}
         )
+        return add_cors_headers(response, origin)
 
     return await call_next(request)
