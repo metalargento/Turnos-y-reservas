@@ -15,13 +15,27 @@ class SupabaseStorageService:
 
     def __init__(self):
         if not settings.supabase_url or not settings.supabase_key:
-            raise ValueError("SUPABASE_URL y SUPABASE_KEY deben estar configurados")
+            raise AppError(
+                message="Variables de entorno SUPABASE_URL y SUPABASE_KEY no configuradas",
+                code="SUPABASE_CONFIG_ERROR",
+                status_code=500
+            )
 
         try:
             from supabase import create_client
             self.client = create_client(settings.supabase_url, settings.supabase_key)
-        except ImportError:
-            raise ImportError("Instala supabase: pip install supabase")
+        except ImportError as e:
+            raise AppError(
+                message="Librería supabase no instalada",
+                code="SUPABASE_IMPORT_ERROR",
+                status_code=500
+            )
+        except Exception as e:
+            raise AppError(
+                message=f"Error al conectar a Supabase: {str(e)}",
+                code="SUPABASE_CONNECTION_ERROR",
+                status_code=500
+            )
 
     def upload_logo(self, file_content: bytes, filename: str, business_id: str) -> str:
         """Sube logo de negocio a Supabase Storage.
