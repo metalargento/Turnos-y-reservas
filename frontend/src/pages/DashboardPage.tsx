@@ -159,21 +159,23 @@ export function DashboardPage() {
       {/* Tarjetas de estadísticas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
         {statCards.map((stat) => (
-          <Card
+          <button
             key={stat.id}
-            className={`${stat.bgColor} ${selectedTab === stat.id ? 'ring-2 ring-offset-2 ring-black' : ''} cursor-pointer transition-all hover:shadow-md`}
             onClick={() => setSelectedTab(stat.id)}
+            className={`p-2 md:p-4 text-center rounded-lg border transition-all ${
+              selectedTab === stat.id
+                ? 'border-2 border-black bg-black/5 shadow-md'
+                : `${stat.bgColor} border border-transparent hover:shadow-md`
+            }`}
           >
-            <CardContent className="p-2 md:p-4 text-center">
-              <div className={`text-2xl md:text-3xl font-bold ${stat.textColor} mb-0.5 md:mb-1`}>
-                {stat.value}
-              </div>
-              <div className="text-xs md:text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
-                <span>{stat.icon}</span>
-                <span>{stat.label}</span>
-              </div>
-            </CardContent>
-          </Card>
+            <div className={`text-2xl md:text-3xl font-bold ${stat.textColor} mb-0.5 md:mb-1`}>
+              {stat.value}
+            </div>
+            <div className="text-xs md:text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
+              <span>{stat.icon}</span>
+              <span>{stat.label}</span>
+            </div>
+          </button>
         ))}
       </div>
 
