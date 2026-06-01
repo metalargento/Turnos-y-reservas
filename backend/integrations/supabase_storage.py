@@ -135,6 +135,10 @@ class SupabaseStorageService:
         unique_filename = f"{entity_id}/{uuid.uuid4()}.{ext}"
 
         try:
+            from utils.logger import logger
+
+            logger.info(f"Uploading file to bucket={bucket}, path={unique_filename}")
+
             # Upload a Supabase Storage
             self.client.storage.from_(bucket).upload(
                 path=unique_filename,
@@ -145,11 +149,17 @@ class SupabaseStorageService:
                 }
             )
 
+            logger.info(f"Upload successful, getting public URL")
+
             # Obtener URL pública
             public_url = self.client.storage.from_(bucket).get_public_url(unique_filename)
+            logger.info(f"Public URL generated: {public_url}")
             return public_url
 
         except Exception as e:
+            import traceback
+            error_msg = f"Error al subir archivo: {str(e)}\n{traceback.format_exc()}"
+            logger.error(error_msg)
             raise AppError(
                 message=f"Error al subir archivo: {str(e)}",
                 code="UPLOAD_FAILED",
