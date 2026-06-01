@@ -294,22 +294,36 @@ class BookingRepository:
         self,
         business_id: str,
         client_email: str,
-        client_phone: str,
+        client_phone: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Obtiene todas las reservas de un cliente por email + teléfono."""
-        query = """
-            SELECT id, business_id, branch_id, professional_id, service_id,
-                   client_name, client_email, client_phone, client_notes,
-                   starts_at, ends_at, status, cancelled_by, cancellation_reason,
-                   payment_required, payment_status, payment_amount, payment_id,
-                   confirmation_token, created_at, updated_at
-            FROM bookings
-            WHERE business_id = %s
-              AND client_email = %s
-              AND client_phone = %s
-            ORDER BY starts_at DESC
-        """
-        results = db.execute_query(query, (business_id, client_email, client_phone))
+        """Obtiene todas las reservas de un cliente por email (y opcionalmente teléfono)."""
+        if client_phone:
+            query = """
+                SELECT id, business_id, branch_id, professional_id, service_id,
+                       client_name, client_email, client_phone, client_notes,
+                       starts_at, ends_at, status, cancelled_by, cancellation_reason,
+                       payment_required, payment_status, payment_amount, payment_id,
+                       confirmation_token, created_at, updated_at
+                FROM bookings
+                WHERE business_id = %s
+                  AND client_email = %s
+                  AND client_phone = %s
+                ORDER BY starts_at DESC
+            """
+            results = db.execute_query(query, (business_id, client_email, client_phone))
+        else:
+            query = """
+                SELECT id, business_id, branch_id, professional_id, service_id,
+                       client_name, client_email, client_phone, client_notes,
+                       starts_at, ends_at, status, cancelled_by, cancellation_reason,
+                       payment_required, payment_status, payment_amount, payment_id,
+                       confirmation_token, created_at, updated_at
+                FROM bookings
+                WHERE business_id = %s
+                  AND client_email = %s
+                ORDER BY starts_at DESC
+            """
+            results = db.execute_query(query, (business_id, client_email))
         return [self._format_booking(row) for row in results] if results else []
 
 

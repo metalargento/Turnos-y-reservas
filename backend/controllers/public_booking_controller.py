@@ -526,11 +526,11 @@ class PublicBookingController:
         self,
         business_id: str,
         client_email: str,
-        client_phone: str,
+        client_phone: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Obtiene todas las reservas de un cliente por email + teléfono.
-        Sin validación de autenticación — email + teléfono actúan como credenciales.
+        Obtiene todas las reservas de un cliente por email (y opcionalmente teléfono).
+        Sin validación de autenticación — email actúa como credencial.
         """
         bookings = booking_repo.find_by_business_email_phone(
             business_id=business_id,

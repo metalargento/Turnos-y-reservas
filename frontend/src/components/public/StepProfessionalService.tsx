@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Card } from '../ui';
 import type { PublicProfessionalItem, PublicServiceItem } from '../../types';
 
@@ -19,6 +20,9 @@ export function StepProfessionalService({
   onSelectService,
   onContinue,
 }: Props) {
+  const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+
   return (
     <div className="space-y-8">
       <div>
@@ -87,7 +91,13 @@ export function StepProfessionalService({
         </div>
       )}
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+        <Button
+          variant="outline"
+          onClick={() => slug && navigate(`/cancel/${slug}`)}
+        >
+          ¿Cancelar una reserva?
+        </Button>
         <Button
           onClick={onContinue}
           disabled={!selectedProfessional || !selectedService}
