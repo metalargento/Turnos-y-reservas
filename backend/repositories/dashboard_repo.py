@@ -37,9 +37,7 @@ class DashboardRepository:
                 WHERE starts_at >= DATE_TRUNC('month', NOW())
                   AND status = 'cancelled'
               ) AS cancelled_this_month,
-              COUNT(DISTINCT client_email) FILTER (
-                WHERE starts_at >= DATE_TRUNC('month', NOW())
-              ) AS unique_clients_this_month
+              COUNT(DISTINCT client_email) AS unique_clients_this_month
             FROM bookings
             WHERE business_id = %s
         """
@@ -142,13 +140,12 @@ class DashboardRepository:
         return [dict(r) for r in results] if results else []
 
     def get_unique_clients(self, business_id: str) -> List[Dict[str, Any]]:
-        """Obtiene lista de clientes únicos con reservas este mes."""
+        """Obtiene lista de todos los clientes únicos (base de datos de clientes)."""
         query = """
             SELECT DISTINCT b.client_email, b.client_name, b.client_phone,
                    COUNT(*) OVER (PARTITION BY b.client_email) AS booking_count
             FROM bookings b
             WHERE b.business_id = %s
-              AND b.starts_at >= DATE_TRUNC('month', NOW())
             ORDER BY booking_count DESC, b.client_name ASC
         """
         results = db.execute_query(query, (business_id,))
