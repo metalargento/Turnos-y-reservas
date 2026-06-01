@@ -181,7 +181,7 @@ export function DashboardPage() {
 
       {/* Panel de datos según tab seleccionado */}
       <Card key={selectedTab}>
-        <CardContent className="p-6">
+        <CardContent className="p-6 overflow-hidden">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
             {selectedTab !== 'upcoming' && selectedTab !== 'clients' && (
@@ -207,11 +207,11 @@ export function DashboardPage() {
                         key={client.client_email}
                         className="flex items-center justify-between p-3 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition"
                       >
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900 dark:text-neutral-100">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-neutral-100 truncate">
                             {client.client_name}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-neutral-400">
+                          <div className="text-sm text-gray-500 dark:text-neutral-400 truncate">
                             {client.client_email}
                             {client.client_phone && <span> • {client.client_phone}</span>}
                           </div>
