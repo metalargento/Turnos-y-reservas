@@ -140,11 +140,20 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-neutral-100">
-          Bienvenido, {user?.full_name}
-        </h1>
-        <p className="text-gray-500 dark:text-neutral-400 text-lg mt-1">{activeBusiness.name}</p>
+      <div className="flex items-center gap-4">
+        {activeBusiness.logo_url && (
+          <img
+            src={activeBusiness.logo_url}
+            alt={activeBusiness.name}
+            className="h-16 w-16 rounded-lg object-cover"
+          />
+        )}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-neutral-100">
+            Bienvenido, {user?.full_name}
+          </h1>
+          <p className="text-gray-500 dark:text-neutral-400 text-lg mt-1">{activeBusiness.name}</p>
+        </div>
       </div>
 
       {/* Tarjetas de estadísticas */}
