@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Sidebar } from './Sidebar';
@@ -10,6 +10,13 @@ export function Layout() {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -30,8 +37,8 @@ export function Layout() {
               </div>
               <span>Turnos & Reservas</span>
             </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-neutral-600 dark:text-neutral-400 font-display">{user?.email}</span>
+            <div className="flex items-center gap-2 md:gap-4">
+              <span className="hidden sm:inline text-sm text-neutral-600 dark:text-neutral-400 font-display">{user?.email}</span>
               <button
                 onClick={toggleTheme}
                 className="p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors z-50 relative"
@@ -39,12 +46,22 @@ export function Layout() {
               >
                 {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
               </button>
-              <button
-                onClick={handleLogout}
-                className="btn btn-ghost text-sm"
-              >
-                Cerrar sesión
-              </button>
+              {isMobile ? (
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+                  title="Cerrar sesión"
+                >
+                  <LogOut size={20} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="btn btn-ghost text-sm"
+                >
+                  Cerrar sesión
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -52,10 +69,10 @@ export function Layout() {
 
       <div className="flex pt-16">
         <Sidebar
-          isCollapsed={sidebarCollapsed}
-          onHover={setSidebarCollapsed}
+          isCollapsed={isMobile || sidebarCollapsed}
+          onHover={isMobile ? () => {} : setSidebarCollapsed}
         />
-        <main className={`flex-1 p-8 animate-fade-in transition-all duration-300 text-neutral-900 dark:text-neutral-100 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
+        <main className={`flex-1 p-4 md:p-8 animate-fade-in transition-all duration-300 text-neutral-900 dark:text-neutral-100 ${isMobile || sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
           <Outlet />
         </main>
       </div>
