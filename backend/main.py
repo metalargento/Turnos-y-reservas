@@ -22,6 +22,7 @@ from routers.availability_router import router as availability_router, blocks_ro
 from routers.booking_router import router as booking_router
 from routers.booking_public_router import router as booking_public_router
 from routers.dashboard_router import router as dashboard_router
+from routers.upload_router import router as upload_router
 from migrations.run_migrations import run_migrations
 
 
@@ -150,3 +151,4 @@ app.include_router(schedule_blocks_router)
 app.include_router(booking_router)
 app.include_router(booking_public_router)
 app.include_router(dashboard_router)
+app.include_router(upload_router)

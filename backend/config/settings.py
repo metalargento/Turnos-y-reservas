@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     reservas_domain: str = "http://localhost:5174"
 
+    # Supabase Storage
+    supabase_url: Optional[str] = None
+    supabase_key: Optional[str] = None
+
     class Config:
         env_file = ".env"
         case_sensitive = False
