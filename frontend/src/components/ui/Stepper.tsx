@@ -33,7 +33,7 @@ export function Stepper({ steps, currentStep }: StepperProps) {
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div className={`flex-grow h-0.5 self-start pt-1 ${index < currentStep ? 'bg-black' : 'bg-gray-200'}`} style={{ minWidth: '1rem' }} />
+            <div className={`flex-grow h-0.5 self-center ${index < currentStep ? 'bg-black' : 'bg-gray-200'}`} style={{ minWidth: '1rem' }} />
           )}
         </React.Fragment>
       ))}
