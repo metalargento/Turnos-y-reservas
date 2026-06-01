@@ -157,18 +157,18 @@ export function DashboardPage() {
       </div>
 
       {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 md:gap-4">
         {statCards.map((stat) => (
           <Card
             key={stat.id}
             className={`${stat.bgColor} ${selectedTab === stat.id ? 'ring-2 ring-offset-2 ring-black' : ''} cursor-pointer transition-all hover:shadow-md`}
             onClick={() => setSelectedTab(stat.id)}
           >
-            <CardContent className="p-4 text-center">
-              <div className={`text-3xl font-bold ${stat.textColor} mb-1`}>
+            <CardContent className="p-2 md:p-4 text-center">
+              <div className={`text-2xl md:text-3xl font-bold ${stat.textColor} mb-0.5 md:mb-1`}>
                 {stat.value}
               </div>
-              <div className="text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
+              <div className="text-xs md:text-sm text-gray-600 dark:text-neutral-400 flex items-center justify-center gap-1">
                 <span>{stat.icon}</span>
                 <span>{stat.label}</span>
               </div>

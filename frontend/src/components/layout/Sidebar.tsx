@@ -28,19 +28,26 @@ export function Sidebar({ isCollapsed, onHover }: SidebarProps) {
   const { businesses, activeBusiness, switchBusiness } = useBusinessContext();
   const [showBusinessMenu, setShowBusinessMenu] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const shouldExpand = isCollapsed && expanded;
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const shouldExpand = isCollapsed && expanded && !isMobile;
 
   return (
     <aside
       onMouseEnter={() => {
-        if (isCollapsed) {
+        if (isCollapsed && !isMobile) {
           setExpanded(true);
           onHover(false);
         }
       }}
       onMouseLeave={() => {
-        if (expanded) {
+        if (expanded && !isMobile) {
           setExpanded(false);
           onHover(true);
         }
