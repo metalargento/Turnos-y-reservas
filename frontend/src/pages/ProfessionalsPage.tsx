@@ -242,7 +242,7 @@ export function ProfessionalsPage() {
               professionals.map((prof) => (
                 <Card key={prof.id}>
                   <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                    <div className="flex justify-between items-start gap-4">
                       <div className="flex gap-4 flex-1">
                         {prof.avatar_url && (
                           <img
@@ -267,7 +267,7 @@ export function ProfessionalsPage() {
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2 w-full md:w-auto md:flex-shrink-0">
+                      <div className="flex flex-col gap-2 flex-shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
