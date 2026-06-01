@@ -180,7 +180,7 @@ export function DashboardPage() {
       </div>
 
       {/* Panel de datos según tab seleccionado */}
-      <Card>
+      <Card key={selectedTab}>
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">{getTabLabel()}</h2>
