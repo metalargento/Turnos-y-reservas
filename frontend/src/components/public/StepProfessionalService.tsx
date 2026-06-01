@@ -93,7 +93,7 @@ export function StepProfessionalService({
 
       <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t border-gray-200">
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={() => slug && navigate(`/cancel/${slug}`)}
           className="w-full sm:w-auto"
         >

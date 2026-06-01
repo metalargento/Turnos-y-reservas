@@ -7,12 +7,12 @@ interface StepperProps {
 
 export function Stepper({ steps, currentStep }: StepperProps) {
   return (
-    <div className="flex items-center justify-center mb-8">
+    <div className="flex items-center justify-center mb-8 flex-wrap gap-0">
       {steps.map((step, index) => (
         <React.Fragment key={index}>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center flex-shrink-0">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 ${
                 index < currentStep
                   ? 'bg-black text-white'
                   : index === currentStep
@@ -28,12 +28,12 @@ export function Stepper({ steps, currentStep }: StepperProps) {
                 index + 1
               )}
             </div>
-            <span className={`text-xs mt-1 ${index <= currentStep ? 'text-black' : 'text-gray-400'}`}>
+            <span className={`text-xs mt-1 text-center px-1 ${index <= currentStep ? 'text-black' : 'text-gray-400'}`}>
               {step}
             </span>
           </div>
           {index < steps.length - 1 && (
-            <div className={`w-12 h-0.5 mx-2 ${index < currentStep ? 'bg-black' : 'bg-gray-200'}`} />
+            <div className={`flex-grow h-0.5 self-start pt-1 ${index < currentStep ? 'bg-black' : 'bg-gray-200'}`} style={{ minWidth: '1rem' }} />
           )}
         </React.Fragment>
       ))}
