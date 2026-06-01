@@ -91,16 +91,18 @@ export function StepProfessionalService({
         </div>
       )}
 
-      <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+      <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4 border-t border-gray-200">
         <Button
           variant="outline"
           onClick={() => slug && navigate(`/cancel/${slug}`)}
+          className="w-full sm:w-auto"
         >
           ¿Cancelar una reserva?
         </Button>
         <Button
           onClick={onContinue}
           disabled={!selectedProfessional || !selectedService}
+          className="w-full sm:w-auto sm:ml-auto"
         >
           Continuar
         </Button>
