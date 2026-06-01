@@ -4,3 +4,4 @@ export { Card, CardHeader, CardContent } from './Card';
 export { Alert } from './Alert';
 export { Stepper } from './Stepper';
 export { TimeSlotSelector } from './TimeSlotSelector';
+export { ImageUploader } from './ImageUploader';
