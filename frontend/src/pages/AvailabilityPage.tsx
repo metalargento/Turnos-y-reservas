@@ -48,6 +48,8 @@ export function AvailabilityPage() {
   const [modalEndTime, setModalEndTime] = useState('18:00');
   const [modalError, setModalError] = useState('');
   const [modalEditingId, setModalEditingId] = useState<string | null>(null);
+  const [isSavingTimeSlot, setIsSavingTimeSlot] = useState(false);
+  const [isSavingBlock, setIsSavingBlock] = useState(false);
 
   useEffect(() => {
     if (!activeBusiness) return;
@@ -125,6 +127,7 @@ export function AvailabilityPage() {
       return;
     }
 
+    setIsSavingTimeSlot(true);
     try {
       if (modalEditingId) {
         await availabilityApi.deleteAvailability(modalEditingId);
@@ -142,6 +145,8 @@ export function AvailabilityPage() {
       setModalEditingId(null);
     } catch (err: any) {
       setModalError(extractErrorMessage(err) || 'Error al guardar horario');
+    } finally {
+      setIsSavingTimeSlot(false);
     }
   };
 
@@ -159,6 +164,7 @@ export function AvailabilityPage() {
 
   const handleAddBlock = async () => {
     if (!selectedProf || !blockDate) return;
+    setIsSavingBlock(true);
     try {
       const fromTime = blockAllDay ? '00:00' : blockFromTime;
       const untilTime = blockAllDay ? '23:59' : blockUntilTime;
@@ -181,6 +187,8 @@ export function AvailabilityPage() {
       setError('');
     } catch (err: any) {
       setError(extractErrorMessage(err) || 'Error al crear bloqueo');
+    } finally {
+      setIsSavingBlock(false);
     }
   };
 
@@ -419,13 +427,20 @@ export function AvailabilityPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={handleAddBlock} className="flex-1 text-xs">
-                        Guardar
+                      <Button
+                        size="sm"
+                        onClick={handleAddBlock}
+                        disabled={isSavingBlock}
+                        className="flex-1 text-xs"
+                        isLoading={isSavingBlock}
+                      >
+                        {isSavingBlock ? 'Guardando...' : 'Guardar'}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setShowBlockForm(false)}
+                        disabled={isSavingBlock}
                         className="flex-1 text-xs"
                       >
                         Cancelar
@@ -510,8 +525,13 @@ export function AvailabilityPage() {
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSaveTimeSlot} className="flex-1">
-                  Guardar
+                <Button
+                  onClick={handleSaveTimeSlot}
+                  disabled={isSavingTimeSlot}
+                  isLoading={isSavingTimeSlot}
+                  className="flex-1"
+                >
+                  {isSavingTimeSlot ? 'Guardando...' : 'Guardar'}
                 </Button>
                 <Button
                   variant="outline"
@@ -519,6 +539,7 @@ export function AvailabilityPage() {
                     setShowTimeModal(false);
                     setModalEditingId(null);
                   }}
+                  disabled={isSavingTimeSlot}
                   className="flex-1"
                 >
                   Cancelar
