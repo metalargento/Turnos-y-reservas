@@ -13,6 +13,8 @@ from repositories.service_repo import service_repo
 from repositories.booking_repo import booking_repo
 from repositories.availability_repo import availability_repo
 from repositories.schedule_blocks_repo import schedule_blocks_repo
+from integrations.resend_service import resend_service
+from config.settings import settings
 from utils.errors import AppError
 from utils.logger import get_logger
 
@@ -357,6 +359,20 @@ class PublicBookingController:
             payment_amount=None,
         )
 
+        # Enviar email de confirmación
+        confirmation_link = f"{settings.frontend_url}/mis-reservas/{business['slug']}?email={client_email}&telefono={client_phone or ''}"
+
+        resend_service.send_booking_confirmation(
+            client_email=client_email,
+            client_name=client_name,
+            business_name=business["name"],
+            service_name=service["name"],
+            professional_name=professional["display_name"],
+            starts_at=starts_iso,
+            confirmation_token=confirmation_token,
+            confirmation_link=confirmation_link,
+        )
+
         return {
             "message": "Tu reserva fue confirmada",
             "booking": booking,
@@ -517,6 +533,18 @@ class PublicBookingController:
             booking_id=booking_id,
             cancelled_by="client",
             cancellation_reason=cancellation_reason or "Cancelada por el cliente",
+        )
+
+        # Enviar email de cancelación
+        service = service_repo.find_by_id(booking["service_id"])
+        resend_service.send_booking_cancellation(
+            client_email=client_email,
+            client_name=client_name,
+            business_name=business["name"],
+            service_name=service["name"] if service else "Servicio",
+            professional_name=professional["display_name"] if (professional := professional_repo.find_by_id(booking["professional_id"])) else "Profesional",
+            starts_at=booking["starts_at"],
+            cancellation_reason=cancellation_reason,
         )
 
         return {
