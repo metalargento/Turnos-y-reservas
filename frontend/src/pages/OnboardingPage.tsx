@@ -5,6 +5,8 @@ import { Button, Input, Card, CardContent, Alert, Stepper, ImageUploader } from 
 import { onboardingApi } from '../api/onboarding';
 import { uploadApi } from '../api/upload';
 import { useAuth } from '../contexts/AuthContext';
+import { branchesApi } from '../api/branches';
+import { servicesApi } from '../api/services';
 import type {
   BusinessStepRequest,
   BrandStepRequest,
@@ -14,6 +16,7 @@ import type {
 } from '../types';
 
 const STEPS = ['Negocio', 'Marca', 'Sucursal', 'Servicios', 'Agenda'];
+const STEP_KEYS = ['step_1_business', 'step_2_brand', 'step_3_branch', 'step_4_services', 'step_5_agenda'];
 
 interface Step1Data extends BusinessStepRequest {}
 interface Step2Data extends BrandStepRequest {}
@@ -29,6 +32,7 @@ export function OnboardingPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   useEffect(() => {
     loadExistingBusiness();
@@ -61,11 +65,71 @@ export function OnboardingPage() {
       if (result.has_business && result.business) {
         setBusinessId(result.business.id);
         const progress = await onboardingApi.getProgress(result.business.id);
-        const nextStepIndex = STEPS.findIndex((step, idx) => !progress.steps_completed.includes(`step_${idx + 1}_${step.toLowerCase()}`));
+        setCompletedSteps(progress.steps_completed);
+
+        const nextStepIndex = STEP_KEYS.findIndex(key => !progress.steps_completed.includes(key));
+
+        if (progress.onboarding_completed) {
+          navigate('/dashboard');
+          return;
+        }
+
+        // Prefill forms with existing business data
+        step1Form.reset({
+          name: result.business.name,
+          rubro: result.business.rubro,
+          description: result.business.description,
+        });
+
+        step2Form.reset({
+          logo_url: result.business.logo_url,
+          primary_color: result.business.primary_color,
+          secondary_color: result.business.secondary_color,
+        });
+
+        step5Form.reset({
+          min_advance_hours: result.business.min_advance_hours,
+          email_provider: result.business.email_provider || 'resend',
+          google_calendar_enabled: result.business.google_calendar_enabled || false,
+        });
+
+        // Load branches for step 3
+        if (progress.steps_completed.includes('step_3_branch')) {
+          try {
+            const branchesResult = await branchesApi.list(result.business.id);
+            if (branchesResult.data.branches.length > 0) {
+              const branch = branchesResult.data.branches[0];
+              step3Form.reset({
+                branch_name: branch.name,
+                address: branch.address,
+                phone: branch.phone,
+              });
+            }
+          } catch {
+            // If error loading branches, continue
+          }
+        }
+
+        // Load services for step 4
+        if (progress.steps_completed.includes('step_4_services')) {
+          try {
+            const servicesResult = await servicesApi.list(result.business.id);
+            if (servicesResult.data.services.length > 0) {
+              step4Form.reset({
+                services: servicesResult.data.services.map(s => ({
+                  name: s.name,
+                  duration_minutes: s.duration_minutes,
+                  price: s.price || 0,
+                })),
+              });
+            }
+          } catch {
+            // If error loading services, continue
+          }
+        }
+
         if (nextStepIndex >= 0) {
           setCurrentStep(nextStepIndex);
-        } else if (progress.onboarding_completed) {
-          navigate('/dashboard');
         }
       }
     } catch {
@@ -83,8 +147,15 @@ export function OnboardingPage() {
     setError('');
     setIsLoading(true);
     try {
+      // Si el paso ya está completo, solo avanzar sin hacer llamada de creación
+      if (completedSteps.includes('step_1_business')) {
+        setCurrentStep(1);
+        return;
+      }
+
       const result = await onboardingApi.step1CreateBusiness(data);
-      setBusinessId(result.id);
+      setBusinessId((result as any).business_id || result.id);
+      setCompletedSteps(prev => [...prev, 'step_1_business']);
       setCurrentStep(1);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al crear negocio');
@@ -99,6 +170,12 @@ export function OnboardingPage() {
     setIsLoading(true);
     try {
       await onboardingApi.step2UpdateBrand(businessId, data);
+      setCompletedSteps(prev => {
+        if (!prev.includes('step_2_brand')) {
+          return [...prev, 'step_2_brand'];
+        }
+        return prev;
+      });
       setCurrentStep(2);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al actualizar marca');
@@ -112,7 +189,14 @@ export function OnboardingPage() {
     setError('');
     setIsLoading(true);
     try {
+      // Si el paso ya está completo, solo avanzar sin hacer llamada de creación
+      if (completedSteps.includes('step_3_branch')) {
+        setCurrentStep(3);
+        return;
+      }
+
       await onboardingApi.step3CreateBranch(businessId, data);
+      setCompletedSteps(prev => [...prev, 'step_3_branch']);
       setCurrentStep(3);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al crear sucursal');
@@ -126,7 +210,14 @@ export function OnboardingPage() {
     setError('');
     setIsLoading(true);
     try {
+      // Si el paso ya está completo, solo avanzar sin hacer llamada de creación
+      if (completedSteps.includes('step_4_services')) {
+        setCurrentStep(4);
+        return;
+      }
+
       await onboardingApi.step4CreateServices(businessId, data);
+      setCompletedSteps(prev => [...prev, 'step_4_services']);
       setCurrentStep(4);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al crear servicios');
@@ -141,6 +232,7 @@ export function OnboardingPage() {
     setIsLoading(true);
     try {
       await onboardingApi.step5UpdateAgenda(businessId, data);
+      setCompletedSteps(prev => [...prev, 'step_5_agenda']);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al configurar agenda');

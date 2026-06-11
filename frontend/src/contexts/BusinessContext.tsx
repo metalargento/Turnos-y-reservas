@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { onboardingApi } from '../api/onboarding';
 import type { Business } from '../types';
 
@@ -16,6 +16,7 @@ const BusinessContext = createContext<BusinessContextType | undefined>(undefined
 
 export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [activeBusiness, setActiveBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,12 +43,20 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       const savedBusinessId = localStorage.getItem('active_business_id');
       const activeFromStorage = result.businesses.find(b => b.id === savedBusinessId);
 
+      let activeBiz: Business;
       if (activeFromStorage) {
+        activeBiz = activeFromStorage;
         setActiveBusiness(activeFromStorage);
       } else {
         // Si no hay guardado o no existe, usar el primero
+        activeBiz = result.businesses[0];
         setActiveBusiness(result.businesses[0]);
         localStorage.setItem('active_business_id', result.businesses[0].id);
+      }
+
+      // Si el onboarding no está completo, redirigir a la página de onboarding
+      if (!activeBiz.onboarding_completed && location.pathname !== '/onboarding') {
+        navigate('/onboarding', { replace: true });
       }
     } catch (err: any) {
       const message = err.response?.data?.detail || 'Error al cargar negocios';
