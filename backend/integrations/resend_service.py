@@ -2,17 +2,16 @@
 Servicio de email transaccional usando Resend.
 Maneja envío de confirmaciones y cancelaciones de reservas.
 """
-from typing import Dict, Any, Optional
-from resend import Resend
+from typing import Optional
+import resend
 from config.settings import settings
 from utils.logger import get_logger
 
 logger = get_logger("resend_service")
 
-# Cliente de Resend (si está configurado)
-_resend_client: Optional[Resend] = None
+# Configurar API key de Resend si está disponible
 if settings.resend_api_key:
-    _resend_client = Resend(api_key=settings.resend_api_key)
+    resend.api_key.set(settings.resend_api_key)
 
 
 class ResendService:
@@ -21,7 +20,7 @@ class ResendService:
     @staticmethod
     def is_configured() -> bool:
         """Verifica si Resend está configurado."""
-        return _resend_client is not None
+        return settings.resend_api_key is not None
 
     @staticmethod
     def send_booking_confirmation(
@@ -39,12 +38,11 @@ class ResendService:
 
         Retorna True si se envió exitosamente, False si no está configurado.
         """
-        if not _resend_client:
+        if not ResendService.is_configured():
             logger.warning("Resend no está configurado. Email de confirmación no enviado.")
             return False
 
         try:
-            # Parsear la fecha
             from datetime import datetime
             booking_date = datetime.fromisoformat(starts_at)
             date_str = booking_date.strftime("%d/%m/%Y")
@@ -103,7 +101,6 @@ class ResendService:
             </div>
             """
 
-            # Enviar con Resend
             email_data = {
                 "from": settings.email_from,
                 "to": client_email,
@@ -111,7 +108,7 @@ class ResendService:
                 "html": html,
             }
 
-            response = _resend_client.emails.send(email_data)
+            response = resend.Emails.send(email_data)
 
             if response.get("id"):
                 logger.info(f"Email de confirmación enviado a {client_email} (ID: {response['id']})")
@@ -139,7 +136,7 @@ class ResendService:
 
         Retorna True si se envió exitosamente, False si no está configurado.
         """
-        if not _resend_client:
+        if not ResendService.is_configured():
             logger.warning("Resend no está configurado. Email de cancelación no enviado.")
             return False
 
@@ -199,7 +196,7 @@ class ResendService:
                 "html": html,
             }
 
-            response = _resend_client.emails.send(email_data)
+            response = resend.Emails.send(email_data)
 
             if response.get("id"):
                 logger.info(f"Email de cancelación enviado a {client_email} (ID: {response['id']})")
