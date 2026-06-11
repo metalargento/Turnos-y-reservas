@@ -23,7 +23,17 @@ export function SettingsPage() {
     secondary_color: '#FFFFFF',
   });
 
-  // Sección 3: Agenda
+  // Sección 3: Contacto
+  const [contactForm, setContactForm] = useState({
+    phone: '',
+    whatsapp: '',
+    address: '',
+    instagram_url: '',
+    facebook_url: '',
+  });
+  const [editingContact, setEditingContact] = useState(false);
+
+  // Sección 4: Agenda
   const [agendaForm, setAgendaForm] = useState({
     min_advance_hours: 1,
     email_provider: 'resend' as const,
@@ -46,6 +56,13 @@ export function SettingsPage() {
         logo_url: activeBusiness.logo_url || '',
         primary_color: activeBusiness.primary_color || '#000000',
         secondary_color: activeBusiness.secondary_color || '#FFFFFF',
+      });
+      setContactForm({
+        phone: activeBusiness.phone || '',
+        whatsapp: activeBusiness.whatsapp || '',
+        address: activeBusiness.address || '',
+        instagram_url: activeBusiness.instagram_url || '',
+        facebook_url: activeBusiness.facebook_url || '',
       });
       setAgendaForm({
         min_advance_hours: activeBusiness.min_advance_hours || 1,
@@ -95,6 +112,29 @@ export function SettingsPage() {
       setTimeout(() => setSuccess(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al guardar marca');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveContact = async () => {
+    if (!activeBusiness) return;
+    setIsLoading(true);
+    try {
+      await businessApi.update(activeBusiness.id, {
+        phone: contactForm.phone || undefined,
+        whatsapp: contactForm.whatsapp || undefined,
+        address: contactForm.address || undefined,
+        instagram_url: contactForm.instagram_url || undefined,
+        facebook_url: contactForm.facebook_url || undefined,
+      });
+      setSuccess('Información de contacto actualizada correctamente');
+      setEditingContact(false);
+      setError('');
+      await refreshBusiness();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Error al guardar contacto');
     } finally {
       setIsLoading(false);
     }
@@ -295,7 +335,96 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Sección 3: Agenda y email */}
+      {/* Sección 3: Contacto */}
+      <Card>
+        <CardContent className="space-y-4">
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Información de contacto</h3>
+
+          {!editingContact ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Teléfono</label>
+                <p className="text-gray-900 dark:text-neutral-100">{contactForm.phone || '—'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">WhatsApp</label>
+                <p className="text-gray-900 dark:text-neutral-100">{contactForm.whatsapp || '—'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Dirección</label>
+                <p className="text-gray-900 dark:text-neutral-100">{contactForm.address || '—'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Instagram</label>
+                <p className="text-gray-900 dark:text-neutral-100">{contactForm.instagram_url ? (
+                  <a href={contactForm.instagram_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Ver perfil
+                  </a>
+                ) : '—'}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Facebook</label>
+                <p className="text-gray-900 dark:text-neutral-100">{contactForm.facebook_url ? (
+                  <a href={contactForm.facebook_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    Ver perfil
+                  </a>
+                ) : '—'}</p>
+              </div>
+              <Button size="sm" onClick={() => setEditingContact(true)} className="w-full">
+                Editar contacto
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Input
+                label="Teléfono"
+                placeholder="+54 9 11 1234-5678"
+                value={contactForm.phone}
+                onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+              />
+              <Input
+                label="WhatsApp"
+                placeholder="+54 9 11 1234-5678"
+                value={contactForm.whatsapp}
+                onChange={(e) => setContactForm({ ...contactForm, whatsapp: e.target.value })}
+              />
+              <Input
+                label="Dirección"
+                placeholder="Avenida Principal 123, CABA"
+                value={contactForm.address}
+                onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+              />
+              <Input
+                label="URL Instagram"
+                placeholder="https://instagram.com/tuusuario"
+                value={contactForm.instagram_url}
+                onChange={(e) => setContactForm({ ...contactForm, instagram_url: e.target.value })}
+              />
+              <Input
+                label="URL Facebook"
+                placeholder="https://facebook.com/tuperfil"
+                value={contactForm.facebook_url}
+                onChange={(e) => setContactForm({ ...contactForm, facebook_url: e.target.value })}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveContact} isLoading={isLoading} className="flex-1">
+                  Guardar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditingContact(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Sección 4: Agenda y email */}
       <Card>
         <CardContent className="space-y-4">
           <h3 className="font-semibold text-lg dark:text-neutral-100">Configuración de agenda</h3>
@@ -334,7 +463,7 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Sección 4: Plan */}
+      {/* Sección 5: Plan */}
       <Card>
         <CardContent className="space-y-4">
           <h3 className="font-semibold text-lg dark:text-neutral-100">Plan y suscripción</h3>

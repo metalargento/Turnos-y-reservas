@@ -5,6 +5,11 @@ export interface BusinessUpdateRequest {
   name?: string;
   rubro?: string;
   description?: string;
+  phone?: string;
+  whatsapp?: string;
+  address?: string;
+  instagram_url?: string;
+  facebook_url?: string;
 }
 
 export const businessApi = {
