@@ -2763,4 +2763,110 @@ Estado: Image upload completamente funcional (2026-06-01)
 
 ---
 
-*Última actualización: 2026-06-01 (Sesión 23 - Image Upload & CORS Fixes)*
+## Sesión 24: Onboarding Resume Bug Fix + Client Page Improvements + Double-Submit Prevention (2026-06-11)
+
+### Resumen
+Arreglo de bugs críticos reportados por el jefe:
+1. **Onboarding bloqueado:** Usuario no podía reanudar el wizard si volvía atrás
+2. **Botones guardando múltiples veces:** Calendar y bloqueos creaban duplicados
+3. **Pantalla cliente incompleta:** Faltaba encabezado, flujo de acciones, contacto
+
+### Lo que se hizo
+
+#### 1. Fix: Onboarding Resume Bug (Main branch - merged immediately)
+**Problema raíz:**
+- Frontend usaba labels en español (`step_1_negocio`, `step_2_marca`) para calcular progreso
+- Backend devolvía keys en inglés (`step_1_business`, `step_2_brand`)
+- Nunca coincidían → usuario siempre volvía al paso 1
+- Al resubmitir paso 1 con negocio existente → error 409 "Ya tenés un negocio registrado"
+
+**Soluciones implementadas:**
+- Array constante `STEP_KEYS = ['step_1_business', 'step_2_brand', ...]` que coincide con backend
+- Estado `completedSteps` para trackear pasos completados
+- Prefilled forms: Al recargar, auto-rellenan datos guardados (name, rubro, logo, colores, etc)
+- Skip redundant calls: Si paso ya completado, no re-llamar API (previene duplicados y 409s)
+- Redirect incompletos: Si `onboarding_completed=false`, BusinessContext redirige a `/onboarding`
+
+**Archivos modificados:**
+- `frontend/src/pages/OnboardingPage.tsx`: Lógica principal
+- `frontend/src/contexts/BusinessContext.tsx`: Redirect automático
+
+**Testing:**
+- ✅ Build sin errores TypeScript
+- ✅ Commit: "fix: onboarding resume bug and incomplete business redirect"
+
+#### 2. Feature: Double-Submit Prevention (rama: fix/double-submit-buttons)
+**Problema:** Botones de "Guardar" en calendario y bloqueos se podían clickear múltiples veces rápido
+
+**Soluciones:**
+- Estados de loading: `isSavingTimeSlot`, `isSavingBlock`
+- Botones deshabilitados durante API call: `disabled={isSavingTimeSlot}`
+- Feedback visual: Texto cambia a "Guardando..." mientras se procesa
+- Prevención de doble-submit garantizada
+
+**Archivos modificados:**
+- `frontend/src/pages/AvailabilityPage.tsx`: Agregué estados + desabilitar botones
+
+**Commit:** "fix: prevent double-submit on availability save buttons"
+
+#### 3. Feature: Client Page Improvements (rama: fix/client-page-improvements)
+**Nuevo flujo de `/mis-reservas/:slug`:**
+
+a) **Migración BD (009_add_contact_fields.sql):**
+```sql
+ALTER TABLE businesses ADD COLUMN phone TEXT;
+ALTER TABLE businesses ADD COLUMN whatsapp TEXT;
+ALTER TABLE businesses ADD COLUMN address TEXT;
+ALTER TABLE businesses ADD COLUMN instagram_url TEXT;
+ALTER TABLE businesses ADD COLUMN facebook_url TEXT;
+```
+
+b) **Business Header (membrete):**
+- Logo, nombre del negocio, rubro, plan status
+- Contacto clickeable: teléfono (tel:), WhatsApp (wa.me), direccion, Instagram, Facebook
+- Visible en todas las pantallas del cliente
+
+c) **Pre-action Menu Screen:**
+Al acceder sin email/teléfono en queryparams, muestra:
+```
+┌─────────────────────────────────────┐
+│  📅 Ver mis reservas                │
+│  Buscar por email + teléfono        │
+│  [Email input] [Phone input] [Button]
+├─────────────────────────────────────┤
+│  ➕ Hacer una reserva               │
+│  Ir al formulario de reserva        │
+│  [Button → /book/:slug]             │
+└─────────────────────────────────────┘
+```
+
+d) **Reservas View:**
+- Encabezado con membrete del negocio
+- Botón "Volver" para regresar al menú
+- Datos del cliente (email/teléfono enmascarados)
+- Tabs: Próximas, Historial, Canceladas
+
+**Archivos modificados:**
+- `backend/migrations/009_add_contact_fields.sql`: Nuevos campos
+- `frontend/src/pages/ClientBookingsPage.tsx`: Reescritura completa con nuevo flujo
+- `frontend/src/types/index.ts`: Agregué campos a interface Business
+
+**Testing:**
+- ✅ Build sin errores TypeScript
+- ✅ Commit: "feat: improve client bookings page with business header and pre-action menu"
+
+### Estado actual
+- **Main branch:** Onboarding fix merged (crítico)
+- **Ramas pendientes para revisar:** 
+  - `fix/double-submit-buttons` (prevención de duplicados)
+  - `fix/client-page-improvements` (UX client, contact info)
+
+### Próximos pasos
+1. Revisar/mergear ramas a main
+2. Falta en Settings: Formulario para agregar teléfono, WhatsApp, dirección, redes sociales
+3. Falta verificar: Emails de confirmación de turno se están mandando correctamente
+4. Falta feature: Pantalla previa podría mostrar también opción "Cancelar una reserva" con formulario inline
+
+---
+
+*Última actualización: 2026-06-11 (Sesión 24 - Onboarding + Client Page + Double-Submit Fixes)*

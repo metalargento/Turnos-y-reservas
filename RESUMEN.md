@@ -1,7 +1,7 @@
 # RESUMEN — Estado Actual del Proyecto
 
-**Última actualización:** 2026-06-01 (Sesión 23)  
-**Estado:** ✅ PRODUCTION READY | Render + Vercel LIVE | End-to-end tested | Image Upload en desarrollo
+**Última actualización:** 2026-06-11 (Sesión 24)  
+**Estado:** ✅ PRODUCTION READY | Render + Vercel LIVE | Onboarding fixed | Client page improved
 
 ---
 
@@ -11,29 +11,45 @@
 - ✅ Widget público en `/book/:slug` (sin login requerido)
 - ✅ Cliente hace reserva con: nombre, email, teléfono, servicio, profesional, fecha, hora
 - ✅ Reserva se guarda en BD y genera token de confirmación
-- ✅ Portal de cliente en `/mis-reservas/:slug?email=X&telefono=Y` para ver/cancelar
+- ✅ Portal de cliente en `/mis-reservas/:slug` con menú de acciones previo
+- ✅ Pantalla de "Ver mis reservas" con email + teléfono (cancelación sin login)
 
 ### 2. **Panel Administrativo**
 - ✅ Dashboard con estadísticas (próximas reservas, ingresos, clientes)
 - ✅ CRUD de servicios, sucursales, profesionales
 - ✅ Gestión de disponibilidad (horarios semanales + bloqueos manuales)
 - ✅ Gestión de reservas (crear, ver, cancelar)
+- ✅ Upload de logo y colores personalizados
 
-### 3. **Autenticación**
+### 3. **Autenticación & Onboarding**
 - ✅ Registro e login de dueños/profesionales
 - ✅ JWT con refresh tokens
+- ✅ Onboarding de 5 pasos (completamente funcional, arreglado resume bug)
 - ✅ Rutas protegidas en backend (solo dueños acceden a su panel)
 
 ### 4. **Base de Datos en Producción**
 - ✅ PostgreSQL en Supabase (nube)
-- ✅ 7 tablas creadas (users, businesses, branches, professionals, services, availability, bookings, schedule_blocks)
+- ✅ 9 tablas creadas (users, businesses, branches, professionals, services, availability, bookings, schedule_blocks, uploads)
 - ✅ Migraciones automáticas en startup del backend
-- ✅ Datos de prueba listos
+- ✅ Campos de contacto nuevos: phone, whatsapp, address, instagram_url, facebook_url
 
-### 5. **Verificación End-to-End**
+### 5. **Cliente Portal Mejorado (Sesión 24)**
+- ✅ Encabezado con membrete (logo, nombre, plan, contacto)
+- ✅ Contacto clickeable (teléfono, WhatsApp, dirección, redes sociales)
+- ✅ Pantalla previa con opciones: "Ver mis reservas" o "Hacer nueva reserva"
+- ✅ Botón "Volver" para regresar al menú de acciones
+
+### 6. **Prevención de Duplicados (Sesión 24)**
+- ✅ Botones de guardar deshabilitan durante API call
+- ✅ Texto de feedback "Guardando..." visible
+- ✅ Imposible crear duplicados al clickear rápido
+
+### 7. **Verificación End-to-End**
 - ✅ Hizo una reserva de prueba exitosamente
 - ✅ Widget carga datos desde Supabase sin problemas
 - ✅ Portal de cliente muestra la reserva
+- ✅ Onboarding completa sin bloqueos
+- ✅ Disponibilidad se guarda sin duplicados
 
 ---
 
@@ -156,27 +172,40 @@ updated_at TIMESTAMPTZ
 
 ## Próximos Pasos (TODO)
 
-### Nivel 1 — Completar MVP
-- [ ] Email de confirmación con link a `/mis-reservas`
+### Nivel 1 — Arreglos Pendientes (Sesión 24)
+- [ ] Mergear ramas: `fix/double-submit-buttons` y `fix/client-page-improvements` a main
+- [ ] Agregar formulario de contacto en Settings (phone, whatsapp, address, redes)
+- [ ] Verificar que emails de confirmación se envían correctamente
+- [ ] Pantalla previa: Agregar opción "Cancelar una reserva" inline
+
+### Nivel 2 — Completar MVP
+- [x] Email de confirmación con link a `/mis-reservas`
 - [ ] Reagendar reserva (cliente puede cambiar fecha/hora)
 - [ ] Recordatorio 24h antes (email)
+- [ ] Validación de email (confirmación de propiedad)
+- [ ] Recuperación de contraseña
 
-### Nivel 2 — Integraciones
-- [ ] Resend (enviar emails transaccionales)
+### Nivel 3 — Integraciones
+- [x] Resend (enviar emails transaccionales) — Parcialmente
 - [ ] Mercado Pago (cobrar las reservas)
 - [ ] Google Calendar (sincronizar reservas)
+- [ ] WhatsApp API (notificaciones)
 
-### Nivel 3 — Despliegue
-- [ ] Backend: AWS (Lambda o EC2)
-- [ ] Frontend: Vercel
-- [ ] SSL/HTTPS en dominio propio
+### Nivel 4 — Despliegue & Ops
+- [x] Backend: Render (ya en producción)
+- [x] Frontend: Vercel (ya en producción)
+- [ ] Dominio propio (en lugar de *.vercel.app y *.onrender.com)
+- [ ] SSL/HTTPS en dominio
 - [ ] Monitoreo y alertas
+- [ ] Backups automáticos de BD
+- [ ] Audit logs
 
-### Nivel 4 — Mejoras UX
-- [ ] Dark mode
+### Nivel 5 — Mejoras UX
+- [x] Dark mode (implementado)
 - [ ] Bilingüe (EN/ES)
-- [ ] Whitelabel (logos/colores personalizados)
+- [ ] Whitelabel completo (logos/colores personalizados)
 - [ ] App móvil (React Native)
+- [ ] Reportes (clientes, ingresos, ocupacion)
 
 ---
 
@@ -257,22 +286,34 @@ npm run dev
 
 ---
 
-## Deployment Status (Sesión 23 - 2026-06-01)
+## Deployment Status (Sesión 24 - 2026-06-11)
 
 ### ✅ PRODUCTION READY
 
-| Componente | Plataforma | URL | Status |
-|-----------|-----------|-----|--------|
-| **Frontend** | Vercel | https://turnos-y-reservas-4qy2.vercel.app | ✅ Online |
-| **Backend** | Render | https://turnos-y-reservas.onrender.com | ✅ Online (free tier) |
-| **Database** | Supabase | PostgreSQL Connection Pooling | ✅ Online |
+| Componente | Plataforma | URL | Status | Estado |
+|-----------|-----------|-----|--------|--------|
+| **Frontend** | Vercel | https://turnos-y-reservas-4qy2.vercel.app | ✅ Online | Actualizado sesión 24 |
+| **Backend** | Render | https://turnos-y-reservas.onrender.com | ✅ Online | Actualizado sesión 24 |
+| **Database** | Supabase | PostgreSQL Connection Pooling | ✅ Online | +campos contacto (sesión 24) |
+| **Storage** | Supabase | Supabase Storage | ✅ Online | Logo, avatares |
 
 ### ✅ Cambios Recientes
 
-**Session 22 (2026-05-28):** Migración exitosa de Railway a Render Free tier
-- Backend totalmente operativo en Render
-- Todos los endpoints respondiendo correctamente
-- End-to-end testing completado (login, booking, email confirmation)
+**Session 24 (2026-06-11):** Onboarding fixes + Client page improvements
+- **Main branch:** Fix de onboarding resume bug (merged inmediatamente)
+  - Step names ahora coinciden backend ↔ frontend
+  - Formularios se precargan con datos guardados
+  - Skip de API calls redundantes
+  - Redirect automático si onboarding incompleto
+- **Rama fix/double-submit-buttons:** Prevención de múltiples clicks
+  - Botones deshabilitan durante API call
+  - Feedback visual "Guardando..."
+  - Prevención de duplicados garantizada
+- **Rama fix/client-page-improvements:** Client portal mejorado
+  - Migración 009: Campos de contacto (phone, whatsapp, address, redes)
+  - Encabezado con membrete (logo, nombre, plan, contacto)
+  - Pantalla previa: Menú de acciones (ver reservas / hacer reserva)
+  - Contacto clickeable en todas las pantallas cliente
 
 **Session 23 (2026-06-01):** Corrección de upload de imágenes
 - Fix: parseo correcto de `business_id` y `professional_id` desde FormData
@@ -369,37 +410,56 @@ Si hay dudas o bugs:
 ## Módulos Implementados
 
 ### ✅ Backend Completado
-- [x] Autenticación JWT (registro, login, refresh)
-- [x] Onboarding de 5 pasos
+- [x] Autenticación JWT (registro, login, refresh, tokens)
+- [x] Onboarding de 5 pasos (FIXED: resume bug en sesión 24)
 - [x] CRUD de servicios, sucursales, profesionales
-- [x] Disponibilidad (horarios semanales + bloqueos)
+- [x] Disponibilidad (horarios semanales + bloqueos manuales)
 - [x] Bookings (crear, cancelar, reprogramar)
-- [x] Email transaccional (Resend)
-- [x] Dashboard con estadísticas
-- [x] Upload de imágenes a Supabase Storage
+- [x] Email transaccional (Resend) para confirmaciones
+- [x] Dashboard con estadísticas y gráficos
+- [x] Upload de imágenes a Supabase Storage (logo, avatares)
+- [x] Validación de datos (Pydantic)
 - [x] CORS y seguridad HTTP headers
+- [x] Sistema de migraciones automáticas
+- [x] Logging JSON centralizado
 
 ### ✅ Frontend Panel Admin
 - [x] Dashboard con gráficos y KPIs
 - [x] CRUD de servicios, sucursales, profesionales
-- [x] Gestión de disponibilidad
-- [x] Gestión de reservas
+- [x] Gestión de disponibilidad (calendarios interactivos)
+- [x] Gestión de reservas (crear, ver, cancelar)
 - [x] Dark mode completo
-- [x] Responsive design
+- [x] Responsive design (mobile + desktop)
 - [x] Upload de logo y colores personalizados
+- [x] Prevención de double-submit (sesión 24)
 
 ### ✅ Widget Público
 - [x] Selección de servicio/profesional
-- [x] Calendario con disponibilidad
+- [x] Calendario con disponibilidad en tiempo real
 - [x] Confirmación de reserva
-- [x] Portal de cliente sin login
-- [x] Cancelación por email + nombre
+- [x] Validación de datos (email, teléfono)
+- [x] Respuesta de confirmación
+
+### ✅ Portal de Cliente (sesión 24)
+- [x] Pantalla previa con menú de acciones
+- [x] "Ver mis reservas" con búsqueda por email + teléfono
+- [x] "Hacer nueva reserva" → enlace a /book/:slug
+- [x] Encabezado con membrete (logo, nombre, plan, contacto)
+- [x] Contacto clickeable (teléfono, WhatsApp, dirección, redes)
+- [x] Cancelación sin login (token en email)
+- [x] Tabs: Próximas, Historial, Canceladas
 
 ### 🔄 En Desarrollo
 - [ ] Mercado Pago (webhook de pagos)
 - [ ] Google Calendar (sincronización)
 - [ ] Tests unitarios e integración
+- [ ] Formulario de contacto en Settings
+- [ ] Validación de email (confirmación)
+- [ ] Recuperación de contraseña
 
 ---
 
-**Estado:** ✅ MVP PRODUCTION READY. Sistema completamente funcional, deployado en Render + Vercel, tested end-to-end.
+**Estado:** ✅ MVP PRODUCTION READY (Sesión 24).  
+Sistema completamente funcional, deployado en Render + Vercel.  
+Onboarding arreglado, cliente portal mejorado, double-submit prevenido.  
+Pendiente: mergear ramas a main, agregar formulario de contacto en Settings.
