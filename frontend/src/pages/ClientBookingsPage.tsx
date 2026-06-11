@@ -1,30 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
-import { Card, CardContent, Alert, Button } from '../components/ui';
+import { Card, CardContent, Alert, Button, Input } from '../components/ui';
 import { publicBookingsApi } from '../api/publicBookings';
-import type { Booking } from '../types';
+import type { Booking, Business } from '../types';
 
 export function ClientBookingsPage() {
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const email = searchParams.get('email') || '';
   const phone = searchParams.get('telefono') || '';
 
+  const [business, setBusiness] = useState<(Business & { professionals?: any[]; services?: any[] }) | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'upcoming' | 'history' | 'cancelled'>('upcoming');
+  const [showActionMenu, setShowActionMenu] = useState(false);
+  const [searchEmail, setSearchEmail] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
+
+  useEffect(() => {
+    if (!slug) return;
+    loadBusiness();
+  }, [slug]);
 
   useEffect(() => {
     if (!slug || !email || !phone) {
-      setError('Email y teléfono son requeridos');
+      setShowActionMenu(true);
       setIsLoading(false);
       return;
     }
+    setShowActionMenu(false);
     loadBookings();
   }, [slug, email, phone]);
+
+  const loadBusiness = async () => {
+    if (!slug) return;
+    try {
+      const response = await publicBookingsApi.getBusinessInfo(slug);
+      const businessData = response.data.business || response.data;
+      setBusiness(businessData as any);
+    } catch (err: any) {
+      setError('Error al cargar información del negocio');
+    }
+  };
 
   const loadBookings = async () => {
     if (!slug || !email || !phone) return;
@@ -67,6 +89,14 @@ export function ClientBookingsPage() {
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Error al cancelar reserva');
     }
+  };
+
+  const handleSearchBookings = () => {
+    if (!slug || !searchEmail || !searchPhone) {
+      setError('Por favor completa email y teléfono');
+      return;
+    }
+    navigate(`/mis-reservas/${slug}?email=${encodeURIComponent(searchEmail)}&telefono=${encodeURIComponent(searchPhone)}`);
   };
 
   const maskEmail = (email: string) => {
@@ -142,10 +172,130 @@ export function ClientBookingsPage() {
 
   const counts = getTabLabel();
 
+  const renderBusinessHeader = () => {
+    if (!business) return null;
+
+    return (
+      <div className="mb-8 pb-6 border-b border-gray-200">
+        <div className="flex items-start gap-4 mb-4">
+          {business.logo_url && (
+            <img
+              src={business.logo_url}
+              alt={business.name}
+              className="w-16 h-16 rounded-lg object-cover"
+            />
+          )}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{business.name}</h1>
+            <p className="text-gray-600 mt-1">{business.rubro}</p>
+            {business.plan_status && (
+              <p className="text-sm text-gray-500 mt-1">
+                Plan: <span className="font-medium capitalize">{business.plan_status}</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Información de contacto */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+          {business.phone && (
+            <a href={`tel:${business.phone}`} className="text-blue-600 hover:underline flex items-center gap-2">
+              📱 {business.phone}
+            </a>
+          )}
+          {business.whatsapp && (
+            <a href={`https://wa.me/${business.whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline flex items-center gap-2">
+              💬 WhatsApp
+            </a>
+          )}
+          {business.address && (
+            <p className="text-gray-600 flex items-center gap-2">
+              📍 {business.address}
+            </p>
+          )}
+          {business.instagram_url && (
+            <a href={business.instagram_url} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline flex items-center gap-2">
+              📸 Instagram
+            </a>
+          )}
+          {business.facebook_url && (
+            <a href={business.facebook_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-2">
+              f Facebook
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+      </div>
+    );
+  }
+
+  // Pantalla previa: elegir acciones
+  if (showActionMenu) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          {renderBusinessHeader()}
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 text-center">¿Qué deseas hacer?</h2>
+
+            {error && <Alert variant="error">{error}</Alert>}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Opción 1: Ver reservas */}
+              <Card className="hover:shadow-lg transition cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="text-5xl mb-4">📅</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Ver mis reservas</h3>
+                  <p className="text-gray-600 text-sm mb-6">
+                    Accede con tu email y teléfono para ver, cancelar o reagendar tus reservas
+                  </p>
+                  <div className="space-y-3">
+                    <Input
+                      type="email"
+                      placeholder="Tu email"
+                      value={searchEmail}
+                      onChange={(e) => setSearchEmail(e.target.value)}
+                    />
+                    <Input
+                      type="tel"
+                      placeholder="Tu teléfono"
+                      value={searchPhone}
+                      onChange={(e) => setSearchPhone(e.target.value)}
+                    />
+                    <Button className="w-full" onClick={handleSearchBookings}>
+                      Ver mis reservas
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Opción 2: Nueva reserva */}
+              <Card className="hover:shadow-lg transition">
+                <CardContent className="p-8 text-center">
+                  <div className="text-5xl mb-4">➕</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Hacer una reserva</h3>
+                  <p className="text-gray-600 text-sm mb-6">
+                    Accede al formulario de reserva para agendar un nuevo turno
+                  </p>
+                  <Button
+                    className="w-full"
+                    onClick={() => navigate(`/book/${slug}`)}
+                  >
+                    Ir al formulario
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -164,10 +314,18 @@ export function ClientBookingsPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      {/* Encabezado */}
+      {/* Membrete del negocio */}
+      {renderBusinessHeader()}
+
+      {/* Encabezado de reservas */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Reservas</h1>
-        <div className="text-sm text-gray-600 space-y-1">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Mis Reservas</h2>
+          <Button variant="outline" size="sm" onClick={() => navigate(`/mis-reservas/${slug}`)}>
+            Volver
+          </Button>
+        </div>
+        <div className="text-sm text-gray-600 space-y-1 mt-2">
           <p>📧 Email: <span className="font-medium">{maskEmail(email)}</span></p>
           <p>📱 Teléfono: <span className="font-medium">{maskPhone(phone)}</span></p>
         </div>

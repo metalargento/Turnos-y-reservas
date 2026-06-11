@@ -28,6 +28,11 @@ export interface Business {
   email_provider?: 'resend';
   min_advance_hours: number;
   google_calendar_enabled: boolean;
+  phone?: string;
+  whatsapp?: string;
+  address?: string;
+  instagram_url?: string;
+  facebook_url?: string;
 }
 
 export interface Branch {
