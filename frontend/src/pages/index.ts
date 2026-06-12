@@ -12,3 +12,4 @@ export { AvailabilityPage } from './AvailabilityPage';
 export { PublicBookingPage } from './PublicBookingPage';
 export { PublicCancelPage } from './PublicCancelPage';
 export { ClientBookingsPage } from './ClientBookingsPage';
+export { GoogleCallbackPage } from './GoogleCallbackPage';

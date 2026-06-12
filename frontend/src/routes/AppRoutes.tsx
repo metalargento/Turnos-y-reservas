@@ -20,6 +20,7 @@ import {
   PublicBookingPage,
   PublicCancelPage,
   ClientBookingsPage,
+  GoogleCallbackPage,
 } from '../pages';
 
 export function AppRoutes() {
@@ -33,6 +34,7 @@ export function AppRoutes() {
           <Route path="/book/:slug" element={<PublicBookingPage />} />
           <Route path="/cancel/:slug" element={<PublicCancelPage />} />
           <Route path="/mis-reservas/:slug" element={<ClientBookingsPage />} />
+          <Route path="/settings/google-callback" element={<GoogleCallbackPage />} />
 
           <Route
             path="/"

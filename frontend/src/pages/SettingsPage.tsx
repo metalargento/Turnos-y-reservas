@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, Button, Input, Alert, ImageUploader } from '../components/ui';
+import { GmailConnect } from '../components/GmailConnect';
 import { useBusinessContext } from '../contexts/BusinessContext';
 import { onboardingApi } from '../api/onboarding';
 import { businessApi } from '../api/business';
@@ -424,42 +425,59 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Sección 4: Agenda y email */}
+      {/* Sección 4: Email y notificaciones */}
       <Card>
-        <CardContent className="space-y-4">
-          <h3 className="font-semibold text-lg dark:text-neutral-100">Configuración de agenda</h3>
+        <CardContent className="space-y-6">
+          <h3 className="font-semibold text-lg dark:text-neutral-100">Email y notificaciones</h3>
 
-          <Input
-            label="Horas mínimas de anticipación"
-            type="number"
-            min="0"
-            max="72"
-            value={agendaForm.min_advance_hours}
-            onChange={(e) => setAgendaForm({ ...agendaForm, min_advance_hours: parseInt(e.target.value) })}
-          />
-
-          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border border-green-200 dark:border-green-800">
-            <p className="text-sm text-green-800 dark:text-green-200">
-              📧 Los emails de confirmación se envían automáticamente a través de Resend
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="google_calendar"
-              checked={agendaForm.google_calendar_enabled}
-              onChange={(e) => setAgendaForm({ ...agendaForm, google_calendar_enabled: e.target.checked })}
-              className="rounded border-gray-300 dark:border-neutral-600"
+          {/* Subsección: Emails de confirmación */}
+          <div className="border-b pb-4 dark:border-neutral-700">
+            <h4 className="font-medium text-gray-700 dark:text-neutral-200 mb-3">Emails de confirmación</h4>
+            {activeBusiness?.google_email ? (
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200 dark:border-blue-800 text-xs text-blue-700 dark:text-blue-300 mb-3">
+                ✅ Se envían desde: <strong>{activeBusiness.google_email}</strong>
+              </div>
+            ) : (
+              <div className="bg-amber-50 dark:bg-amber-950 p-3 rounded-lg border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-300 mb-3">
+                📧 Se envían a través de Resend (proveedor por defecto)
+              </div>
+            )}
+            <GmailConnect
+              businessId={activeBusiness?.id || ''}
+              googleEmail={activeBusiness?.google_email}
+              onConnectSuccess={refreshBusiness}
             />
-            <label htmlFor="google_calendar" className="text-sm text-gray-700 dark:text-neutral-200">
-              Integración con Google Calendar habilitada
-            </label>
           </div>
 
-          <Button onClick={handleSaveAgenda} isLoading={isLoading} className="w-full">
-            Guardar configuración
-          </Button>
+          {/* Subsección: Agenda */}
+          <div>
+            <h4 className="font-medium text-gray-700 dark:text-neutral-200 mb-3">Configuración de agenda</h4>
+            <Input
+              label="Horas mínimas de anticipación"
+              type="number"
+              min="0"
+              max="72"
+              value={agendaForm.min_advance_hours}
+              onChange={(e) => setAgendaForm({ ...agendaForm, min_advance_hours: parseInt(e.target.value) })}
+            />
+            
+            <div className="flex items-center gap-2 mt-4">
+              <input
+                type="checkbox"
+                id="google_calendar"
+                checked={agendaForm.google_calendar_enabled}
+                onChange={(e) => setAgendaForm({ ...agendaForm, google_calendar_enabled: e.target.checked })}
+                className="rounded border-gray-300 dark:border-neutral-600"
+              />
+              <label htmlFor="google_calendar" className="text-sm text-gray-700 dark:text-neutral-200">
+                Integración con Google Calendar habilitada
+              </label>
+            </div>
+
+            <Button onClick={handleSaveAgenda} isLoading={isLoading} className="w-full mt-4">
+              Guardar configuración
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
