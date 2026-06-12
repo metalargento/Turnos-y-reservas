@@ -371,6 +371,9 @@ class PublicBookingController:
             starts_at=starts_iso,
             confirmation_token=confirmation_token,
             confirmation_link=confirmation_link,
+            google_access_token=business.get("google_access_token"),
+            google_refresh_token=business.get("google_refresh_token"),
+            google_email=business.get("google_email"),
         )
 
         return {
