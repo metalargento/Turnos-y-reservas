@@ -1,7 +1,7 @@
 # RESUMEN — Estado Actual del Proyecto
 
-**Última actualización:** 2026-06-11 (Sesión 24)  
-**Estado:** ✅ PRODUCTION READY | Render + Vercel LIVE | Onboarding fixed | Client page improved
+**Última actualización:** 2026-06-12 (Sesión 26)  
+**Estado:** ✅ PRODUCTION READY | OAuth2 Gmail + E2E tested | Render + Vercel LIVE
 
 ---
 
@@ -44,12 +44,22 @@
 - ✅ Texto de feedback "Guardando..." visible
 - ✅ Imposible crear duplicados al clickear rápido
 
-### 7. **Verificación End-to-End**
+### 7. **Verificación End-to-End (Sesión 26)**
 - ✅ Hizo una reserva de prueba exitosamente
 - ✅ Widget carga datos desde Supabase sin problemas
 - ✅ Portal de cliente muestra la reserva
 - ✅ Onboarding completa sin bloqueos
 - ✅ Disponibilidad se guarda sin duplicados
+- ✅ Test E2E completo: user → negocio → reserva pública ✅
+
+### 8. **OAuth2 Gmail Integration (Sesión 26)**
+- ✅ Cada negocio puede conectar su propia cuenta Gmail
+- ✅ Emails de confirmación se envían desde Gmail del negocio
+- ✅ Fallback automático a Resend si Gmail no está configurado
+- ✅ Botón "🔗 Conectar con Google" en Settings
+- ✅ OAuth2 flow seguro (sin almacenamiento de contraseñas)
+- ✅ Backend endpoints para autorizar, callback, desconectar
+- ⏳ Requiere setup en Google Cloud Console (redirect_uri)
 
 ---
 

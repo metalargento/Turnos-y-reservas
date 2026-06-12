@@ -632,3 +632,159 @@ Arreglo de bugs críticos: onboarding bloqueado, botones guardando múltiples ve
 ---
 
 *Última actualización: 2026-06-11 (Sesión 24 - Bugs críticos arreglados)*
+
+---
+
+## Sesión 26: OAuth2 Gmail Integration & E2E Testing (2026-06-12)
+
+### Resumen
+Implementación completa de OAuth2 Gmail para permitir que cada negocio envíe emails desde su propia cuenta. Test E2E exitoso del flujo completo en producción (usuario → reserva). Arreglo de errores de Resend API y TypeScript.
+
+### Lo que se hizo
+
+#### 1. Diagnosticado y Arreglado Error de Resend API
+**Problema:** Backend fallaba con `AttributeError: 'str' object has no attribute 'set'`
+- Versión Resend 2.4.0 no exporta clase `Resend`
+- `resend.api_key.set()` no existe en esta versión
+
+**Solución:**
+- Usar `os.environ['RESEND_API_KEY']` para configurar
+- Llamar directamente a `resend.Emails.send()`
+- Manejo correcto de variable de entorno
+
+**Commits:**
+- `c544bcc` - fix: correct Resend client initialization
+- `820f5da` - fix: use resend.Emails.send() directly
+
+#### 2. Test E2E Completo en Producción ✅
+**Objetivo:** Validar flujo completo: usuario → negocio → servicio → profesional → reserva pública
+
+**Flujo testeado:**
+1. ✅ Registro de usuario: test-e2e-1781276454@test.com
+2. ✅ Creación de negocio: "Consultorio E2E 1781276491"
+3. ✅ Setup completo:
+   - Sucursal: "Sucursal Principal"
+   - Servicio: "Consulta General" (30 min, $150)
+   - Profesional: "Dr. Test"
+   - Disponibilidad: Lun-Vie 08:00-18:00
+4. ✅ Reserva pública exitosa:
+   - ID: d8f63e4c-a13f-421a-ae83-e39f51a7a187
+   - Status: CONFIRMED
+   - Fecha: 2026-06-15 11:00 UTC
+   - Cliente: test-client-e2e@example.com
+   - Flujo: Widget público → backend → DB ✅
+
+**Resultado:** End-to-end booking flow completamente funcional en producción
+
+#### 3. Implementado OAuth2 Gmail desde Cero
+
+**Backend (Render):**
+- **gmail_service.py** - Servicio de Gmail API
+  - `send_email()` - Envía emails vía Gmail API
+  - Maneja refresh tokens automáticamente
+  - Non-blocking (errores no fallan la reserva)
+
+- **google_oauth_router.py** - Endpoints OAuth2
+  - `GET /api/google-oauth/authorize/{business_id}` - Genera URL de Google
+  - `POST /api/google-oauth/callback` - Procesa código, obtiene tokens, guarda en BD
+  - `DELETE /api/google-oauth/{business_id}` - Desconecta Gmail
+
+- **resend_service.py** - Actualizado con soporte dual
+  - Intenta Gmail primero si `google_email` + `google_access_token` existen
+  - Fallback automático a Resend si Gmail falla o no está configurado
+  - Same email templates para ambos servicios
+
+- **Migración 010** - Schema para OAuth2:
+  ```sql
+  ALTER TABLE businesses ADD COLUMN IF NOT EXISTS google_email VARCHAR(255);
+  ALTER TABLE businesses ADD COLUMN IF NOT EXISTS google_refresh_token TEXT;
+  ALTER TABLE businesses ADD COLUMN IF NOT EXISTS google_access_token TEXT;
+  ALTER TABLE businesses ADD COLUMN IF NOT EXISTS google_token_expiry TIMESTAMP;
+  ```
+
+**Frontend (Vercel):**
+- **GmailConnect.tsx** - Componente conectar/desconectar
+  - Botón "🔗 Conectar con Google"
+  - Muestra estado (conectado/desconectado)
+  - Opción desconectar con confirmación
+
+- **GoogleCallbackPage.tsx** - Maneja callback de Google
+  - Procesa código + state
+  - Muestra spinner durante procesamiento
+  - Feedback visual: éxito/error
+  - Auto-redirige a Settings
+
+- **SettingsPage.tsx** - Integración en UI
+  - Nueva sección: "Email y notificaciones"
+  - Subsección: "Conectar Gmail"
+  - Muestra email conectado o opción conectar
+
+- **AppRoutes.tsx** - Nueva ruta pública
+  - `/settings/google-callback` - No requiere auth
+
+- **types/index.ts** - Business interface actualizada
+  - Agregados: google_email, google_access_token, google_refresh_token, google_token_expiry
+
+**Commits:**
+- `e437d7b` - feat: implement OAuth2 Gmail integration (backend)
+- `ef8441f` - feat: add Gmail OAuth2 frontend UI
+- `0bdf5e2` - feat: add missing Gmail OAuth2 backend files
+- `187be6b` - fix: correct Gmail OAuth2 TypeScript errors
+
+#### 4. Arreglados Errores TypeScript en Vercel
+**Errores encontrados en build:**
+```
+GmailConnect.tsx(52,24): error TS2322 - Alert props incorrectos
+SettingsPage.tsx(436-447): error TS2339 - Business.google_email no existe
+```
+
+**Soluciones:**
+1. Alert component: cambio de props
+   - De: `<Alert type="error" message={error} />`
+   - A: `<Alert variant="error">{error}</Alert>`
+
+2. Business interface: agregados campos Google
+   - `google_email?: string`
+   - `google_access_token?: string`
+   - `google_refresh_token?: string`
+   - `google_token_expiry?: string`
+
+3. Result: Vercel build ahora compila exitosamente ✅
+
+### Estado Actual
+- **Frontend (Vercel):** ✅ Build exitoso, botón "Conectar Gmail" visible en Settings
+- **Backend (Render):** ✅ Código listo, variables GOOGLE_CLIENT_ID/SECRET configuradas
+- **Base de datos:** ✅ Migración 010 lista para ejecutar
+- **Google OAuth Flow:** ⏳ Requiere verificación de redirect_uri en Google Cloud Console
+
+### Próximos Pasos
+1. **Verificar Google Cloud Console:**
+   - Authorized redirect URIs debe incluir exactamente:
+     ```
+     https://turnos-y-reservas-4qy2.vercel.app/settings/google-callback
+     ```
+
+2. **Test flujo completo:**
+   - Settings → "Email y notificaciones"
+   - Click "🔗 Conectar con Google"
+   - Autorizar cuenta
+   - Verificar email conectado en Settings
+
+3. **Validar emails:**
+   - Hacer nueva reserva pública
+   - Verificar que email sale desde Gmail del negocio (no Resend)
+
+4. **Documentación:**
+   - Actualizar RESUMEN.md con nueva feature
+   - Documentar pasos setup OAuth2 para usuarios
+
+### Deuda Técnica Identificada
+- [ ] SMTP configurable por negocio (alternativa a Gmail)
+- [ ] Rate limiting (slowapi configurado pero no usado)
+- [ ] Health check endpoint
+- [ ] Tests unitarios/e2e
+- [ ] Error handling más robusto
+
+---
+
+*Última actualización: 2026-06-12 (Sesión 26 - OAuth2 Gmail + E2E Testing)*
