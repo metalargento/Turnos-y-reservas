@@ -49,7 +49,7 @@ export function GmailConnect({ businessId, googleEmail, onConnectSuccess }: Gmai
     <div className="space-y-3">
       <h4 className="font-medium text-gray-700 dark:text-neutral-200">Conectar Gmail</h4>
 
-      {error && <Alert type="error" message={error} />}
+      {error && <Alert variant="error">{error}</Alert>}
 
       {googleEmail ? (
         <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 space-y-3">

@@ -33,6 +33,10 @@ export interface Business {
   address?: string;
   instagram_url?: string;
   facebook_url?: string;
+  google_email?: string;
+  google_access_token?: string;
+  google_refresh_token?: string;
+  google_token_expiry?: string;
 }
 
 export interface Branch {
