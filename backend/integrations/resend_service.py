@@ -3,15 +3,14 @@ Servicio de email transaccional usando Resend.
 Maneja envío de confirmaciones y cancelaciones de reservas.
 """
 from typing import Optional
-import resend
+from resend import Resend
 from config.settings import settings
 from utils.logger import get_logger
 
 logger = get_logger("resend_service")
 
-# Configurar API key de Resend si está disponible
-if settings.resend_api_key:
-    resend.api_key.set(settings.resend_api_key)
+# Cliente de Resend si está configurado
+resend_client = Resend(api_key=settings.resend_api_key) if settings.resend_api_key else None
 
 
 class ResendService:
@@ -108,7 +107,7 @@ class ResendService:
                 "html": html,
             }
 
-            response = resend.Emails.send(email_data)
+            response = resend_client.emails.send(email_data)
 
             if response.get("id"):
                 logger.info(f"Email de confirmación enviado a {client_email} (ID: {response['id']})")
@@ -196,7 +195,7 @@ class ResendService:
                 "html": html,
             }
 
-            response = resend.Emails.send(email_data)
+            response = resend_client.emails.send(email_data)
 
             if response.get("id"):
                 logger.info(f"Email de cancelación enviado a {client_email} (ID: {response['id']})")

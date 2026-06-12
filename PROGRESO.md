@@ -577,7 +577,7 @@ Implementación de upload de imágenes a Supabase Storage. Correcciones crítica
   - ✅ FormData parsing correcto
 
 ### Próximos pasos
-- Arreglos de bugs reportados por jefe
+- Arreglos de bugs reportados
 
 ---
 
